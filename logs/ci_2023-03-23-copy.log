@@ -1,0 +1,117 @@
+INFO  - 2023-03-23 01:55:44 --> Config Class Initialized
+INFO  - 2023-03-23 01:55:44 --> Hooks Class Initialized
+DEBUG - 2023-03-23 01:55:44 --> UTF-8 Support Enabled
+INFO  - 2023-03-23 01:55:44 --> Utf8 Class Initialized
+INFO  - 2023-03-23 01:55:44 --> URI Class Initialized
+INFO  - 2023-03-23 01:55:44 --> Router Class Initialized
+INFO  - 2023-03-23 01:55:44 --> Output Class Initialized
+INFO  - 2023-03-23 01:55:44 --> Security Class Initialized
+DEBUG - 2023-03-23 01:55:44 --> Global POST, GET and COOKIE data sanitized
+INFO  - 2023-03-23 01:55:44 --> Input Class Initialized
+INFO  - 2023-03-23 01:55:45 --> Language Class Initialized
+INFO  - 2023-03-23 01:55:45 --> Loader Class Initialized
+DEBUG - 2023-03-23 01:55:45 --> Config file loaded: /vhosts/acs/src/application/config/test_data.php
+INFO  - 2023-03-23 01:55:45 --> Helper loaded: url_helper
+INFO  - 2023-03-23 01:55:45 --> Helper loaded: common_helper
+INFO  - 2023-03-23 01:55:45 --> Controller Class Initialized
+ERROR - 2023-03-23 01:55:45 --> Severity: 8192 --> str_replace(): Passing null to parameter #3 ($subject) of type array|string is deprecated /vhosts/acs/src/system/core/Output.php 458
+INFO  - 2023-03-23 01:55:45 --> Final output sent to browser
+DEBUG - 2023-03-23 01:55:45 --> Total execution time: 0.5004
+INFO  - 2023-03-23 01:56:07 --> Config Class Initialized
+INFO  - 2023-03-23 01:56:07 --> Hooks Class Initialized
+DEBUG - 2023-03-23 01:56:07 --> UTF-8 Support Enabled
+INFO  - 2023-03-23 01:56:07 --> Utf8 Class Initialized
+INFO  - 2023-03-23 01:56:07 --> URI Class Initialized
+INFO  - 2023-03-23 01:56:07 --> Router Class Initialized
+INFO  - 2023-03-23 01:56:07 --> Output Class Initialized
+INFO  - 2023-03-23 01:56:07 --> Security Class Initialized
+DEBUG - 2023-03-23 01:56:07 --> Global POST, GET and COOKIE data sanitized
+INFO  - 2023-03-23 01:56:07 --> Input Class Initialized
+INFO  - 2023-03-23 01:56:07 --> Language Class Initialized
+INFO  - 2023-03-23 01:56:07 --> Loader Class Initialized
+DEBUG - 2023-03-23 01:56:07 --> Config file loaded: /vhosts/acs/src/application/config/test_data.php
+INFO  - 2023-03-23 01:56:07 --> Helper loaded: url_helper
+INFO  - 2023-03-23 01:56:07 --> Helper loaded: common_helper
+INFO  - 2023-03-23 01:56:07 --> Controller Class Initialized
+ERROR - 2023-03-23 01:56:07 --> Severity: 8192 --> str_replace(): Passing null to parameter #3 ($subject) of type array|string is deprecated /vhosts/acs/src/system/core/Output.php 458
+INFO  - 2023-03-23 01:56:07 --> Final output sent to browser
+DEBUG - 2023-03-23 01:56:07 --> Total execution time: 0.2339
+INFO  - 2023-03-23 01:57:21 --> Config Class Initialized
+INFO  - 2023-03-23 01:57:21 --> Hooks Class Initialized
+DEBUG - 2023-03-23 01:57:21 --> UTF-8 Support Enabled
+INFO  - 2023-03-23 01:57:21 --> Utf8 Class Initialized
+INFO  - 2023-03-23 01:57:21 --> URI Class Initialized
+INFO  - 2023-03-23 01:57:21 --> Router Class Initialized
+INFO  - 2023-03-23 01:57:21 --> Output Class Initialized
+INFO  - 2023-03-23 01:57:21 --> Security Class Initialized
+DEBUG - 2023-03-23 01:57:21 --> Global POST, GET and COOKIE data sanitized
+INFO  - 2023-03-23 01:57:21 --> Input Class Initialized
+INFO  - 2023-03-23 01:57:21 --> Language Class Initialized
+INFO  - 2023-03-23 01:57:21 --> Loader Class Initialized
+DEBUG - 2023-03-23 01:57:21 --> Config file loaded: /vhosts/acs/src/application/config/test_data.php
+INFO  - 2023-03-23 01:57:21 --> Helper loaded: url_helper
+INFO  - 2023-03-23 01:57:21 --> Helper loaded: common_helper
+INFO  - 2023-03-23 01:57:21 --> Controller Class Initialized
+ERROR - 2023-03-23 01:57:21 --> Severity: 8192 --> str_replace(): Passing null to parameter #3 ($subject) of type array|string is deprecated /vhosts/acs/src/system/core/Output.php 458
+INFO  - 2023-03-23 01:57:21 --> Final output sent to browser
+DEBUG - 2023-03-23 01:57:21 --> Total execution time: 0.1702
+INFO  - 2023-03-23 01:58:05 --> Config Class Initialized
+INFO  - 2023-03-23 01:58:05 --> Hooks Class Initialized
+DEBUG - 2023-03-23 01:58:05 --> UTF-8 Support Enabled
+ERROR - 2023-03-24 09:11:06 --> http://devkeyserver.acquired.com/test.php?version=2
+ERROR - 2023-03-24 09:24:26 --> http://devkeyserver.acquired.com/test.php?version=3
+
+CRITICAL - 2023-03-24 09:27:32 --> hex2bin(): Passing null to parameter #1 ($string) of type string is deprecated
+in /vhosts/common/Helpers/common_helper.php on line 1585.
+ 1 [internal function]: CodeIgniter\Debug\Exceptions->errorHandler(8192, 'hex2bin(): Passing null to parameter #1 ($string) of type string is deprecated', '/vhosts/common/Helpers/common_helper.php', 1585)
+ 2 /vhosts/common/Helpers/common_helper.php(1585): hex2bin(null)
+ 3 APPPATH/Controllers/Payments/TdsAuth.php(237): dekDecrypt(null, null)
+ 4 APPPATH/Controllers/Payments/TdsAuth.php(102): App\Controllers\Payments\TdsAuth->generateRequestData(Object(stdClass), '%7B%22colorDepth%22:24,%22javaEnabled%22:false,%22javascriptEnabled%22:true,%22browserLanguage%22:%22zh%22,%22screenHeight%22:1200,%22screenWidth%22:1920,%22challengeWindowSize%22:%22FULL_SCREEN%22,%22userAgent%22:%22Mozilla/5.0%20(Macintosh;%20Intel%20Mac%20OS%20X%2010_15_7)%20AppleWebKit/537.36%20(KHTML,%20like%20Gecko)%20Chrome/111.0.0.0%20Safari/537.36%22,%22browserTimezoneZoneOffset%22:-480%7D', 'authorisation')
+ 5 SYSTEMPATH/CodeIgniter.php(904): App\Controllers\Payments\TdsAuth->tdsSubmit('086f4bd3-78f8-910e-ff7d-693f2f98ece7')
+ 6 SYSTEMPATH/CodeIgniter.php(457): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Payments\TdsAuth))
+ 7 SYSTEMPATH/CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 8 FCPATH/index.php(67): CodeIgniter\CodeIgniter->run()
+CRITICAL - 2023-03-24 09:51:40 --> openssl_decrypt(): Passing null to parameter #1 ($data) of type string is deprecated
+in /vhosts/common/Libraries/AES_Encryption.php on line 59.
+ 1 [internal function]: CodeIgniter\Debug\Exceptions->errorHandler(8192, 'openssl_decrypt(): Passing null to parameter #1 ($data) of type string is deprecated', '/vhosts/common/Libraries/AES_Encryption.php', 59)
+ 2 /vhosts/common/Libraries/AES_Encryption.php(59): openssl_decrypt(null, 'AES-128-CBC', Object(SensitiveParameterValue), 3, '1234567890123456')
+ 3 /vhosts/common/Helpers/common_helper.php(1586): Common\Libraries\AES_Encryption->decrypt(null)
+ 4 APPPATH/Controllers/Payments/TdsAuth.php(237): dekDecrypt(null, null)
+ 5 APPPATH/Controllers/Payments/TdsAuth.php(102): App\Controllers\Payments\TdsAuth->generateRequestData(Object(stdClass), '%7B%22colorDepth%22:24,%22javaEnabled%22:false,%22javascriptEnabled%22:true,%22browserLanguage%22:%22zh%22,%22screenHeight%22:1200,%22screenWidth%22:1920,%22challengeWindowSize%22:%22FULL_SCREEN%22,%22userAgent%22:%22Mozilla/5.0%20(Macintosh;%20Intel%20Mac%20OS%20X%2010_15_7)%20AppleWebKit/537.36%20(KHTML,%20like%20Gecko)%20Chrome/111.0.0.0%20Safari/537.36%22,%22browserTimezoneZoneOffset%22:-480%7D', 'authorisation')
+ 6 SYSTEMPATH/CodeIgniter.php(904): App\Controllers\Payments\TdsAuth->tdsSubmit('086f4bd3-78f8-910e-ff7d-693f2f98ece7')
+ 7 SYSTEMPATH/CodeIgniter.php(457): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Payments\TdsAuth))
+ 8 SYSTEMPATH/CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 9 FCPATH/index.php(67): CodeIgniter\CodeIgniter->run()
+CRITICAL - 2023-03-24 09:55:45 --> openssl_decrypt(): Passing null to parameter #1 ($data) of type string is deprecated
+in /vhosts/common/Libraries/AES_Encryption.php on line 59.
+ 1 [internal function]: CodeIgniter\Debug\Exceptions->errorHandler(8192, 'openssl_decrypt(): Passing null to parameter #1 ($data) of type string is deprecated', '/vhosts/common/Libraries/AES_Encryption.php', 59)
+ 2 /vhosts/common/Libraries/AES_Encryption.php(59): openssl_decrypt(null, 'AES-128-CBC', Object(SensitiveParameterValue), 3, '1234567890123456')
+ 3 /vhosts/common/Helpers/common_helper.php(1586): Common\Libraries\AES_Encryption->decrypt(null)
+ 4 APPPATH/Controllers/Payments/TdsAuth.php(237): dekDecrypt(null, null)
+ 5 APPPATH/Controllers/Payments/TdsAuth.php(102): App\Controllers\Payments\TdsAuth->generateRequestData(Object(stdClass), '%7B%22colorDepth%22:24,%22javaEnabled%22:false,%22javascriptEnabled%22:true,%22browserLanguage%22:%22zh%22,%22screenHeight%22:1200,%22screenWidth%22:1920,%22challengeWindowSize%22:%22FULL_SCREEN%22,%22userAgent%22:%22Mozilla/5.0%20(Macintosh;%20Intel%20Mac%20OS%20X%2010_15_7)%20AppleWebKit/537.36%20(KHTML,%20like%20Gecko)%20Chrome/111.0.0.0%20Safari/537.36%22,%22browserTimezoneZoneOffset%22:-480%7D', 'authorisation')
+ 6 SYSTEMPATH/CodeIgniter.php(904): App\Controllers\Payments\TdsAuth->tdsSubmit('086f4bd3-78f8-910e-ff7d-693f2f98ece7')
+ 7 SYSTEMPATH/CodeIgniter.php(457): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Payments\TdsAuth))
+ 8 SYSTEMPATH/CodeIgniter.php(340): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 9 FCPATH/index.php(67): CodeIgniter\CodeIgniter->run()
+
+ERROR - 2023-03-24 09:59:30 --> ---------{"transaction_id":"422d033b-c60f-20fc-3226-6b33fe24f90b","status":"success","tds":{"status":"success","eci":"05","reason":"17"},"links":[{"rel":"self","href":"\/v1\/transactions\/422d033b-c60f-20fc-3226-6b33fe24f90b"}],"redirect_url":"https:\/\/qaacs.acquired.com\/merchant_redirect\/test_success","redirect_data":{"status":"success","transaction_id":"422d033b-c60f-20fc-3226-6b33fe24f90b","order_id":"85eec130-58a9-400f-9e0f-9bc05d307359","timestamp":1679651970,"hash":"9cea695e9e79f8afec4b99283dc83b36e8d36c10adbf43ff3c13e27e90f86556"}}
+ERROR - 2023-03-24 09:18:12 --> Validation error - {"transaction":{"order_id":"devin_97066454-a22e-4945-9b21-a0203b0de1e5","amount":"14","currency":"gbp","moto":false,"capture":false},"payment":{"card_id1":"574e176e-4356-393b-b0fc-827c46302bd2","card":{"cvv":"###"},"reference":"Custom Ref 001"},"customer":{"customer_id":"2546e6c1-7885-325b-2e5b-42427ffc7de3"},"company_id":"234","mid":"1279","custom_data":""}
+ERROR - 2023-03-24 09:18:19 --> Error - TRX:() Response Code:() - Undefined array key "number" - 0 - File:/vhosts/app_v1/app/Controllers/Payments/PaymentsCommon.php Function:errorHandler Line:1325
+ERROR - 2023-03-24 09:18:19 --> Unexpected Exception: {
+    "current_url": "https://dev-api.acquired.com/v1/index.php/payments",
+    "client_ip": "172.18.0.1",
+    "user_agent": "PostmanRuntime/7.31.1",
+    "backtrace": [
+        "File:/vhosts/app_v1/app/Controllers/Payments/PaymentsCommon.php Function:errorHandler Line:1325",
+        "File:/vhosts/app_v1/app/Controllers/Payments/PaymentsCommon.php Function:getParamCardNumber Line:282",
+        "File:/vhosts/app_v1/app/Controllers/Payments/AuthRequest.php Function:addPayment Line:27",
+        "File:/vhosts/system/CodeIgniter.php Function:index Line:904",
+        "File:/vhosts/system/CodeIgniter.php Function:runController Line:457",
+        "File:/vhosts/system/CodeIgniter.php Function:handleRequest Line:340"
+    ]
+}
+ERROR - 2023-03-23 01:57:21 --> Severity: 8192 --> str_replace(): Passing null to parameter #3 ($subject) of type array|string is deprecated /vhosts/acs/src/system/core/Output.php 458ß
+ERROR - 2023-03-23 01:57:21 --> Severity: 8192 --> str_replace(): Passing null to parameter #3 ($subject) of type array|string is deprecated /vhosts/acs/src/system/core/Output.php 458ß
+ERROR - 2023-03-23 01:57:21 --> Severity: 8192 --> str_replace(): Passing null to parameter #3 ($subject) of type array|string is deprecated /vhosts/acs/src/system/core/Output.php 458ß
+ERROR - 2023-03-23 01:57:21 --> Severity: 8192 --> str_replace(): Passing null to parameter #3 ($subject) of type array|string is deprecated /vhosts/acs/src/system/core/Output.php 458ß
+ERROR - 2023-03-23 01:57:21 --> Severity: 8192 --> str_replace(): Passing null to parameter #3 ($subject) of type array|string is deprecated /vhosts/acs/src/system/core/Output.php 458ß

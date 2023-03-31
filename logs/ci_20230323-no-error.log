@@ -1,0 +1,16 @@
+INFO  - 2023-03-23 01:55:44 --> Config Class Initialized
+INFO  - 2023-03-23 01:55:44 --> Hooks Class Initialized
+DEBUG - 2023-03-23 01:55:44 --> UTF-8 Support Enabled
+INFO  - 2023-03-23 01:55:44 --> Utf8 Class Initialized
+INFO  - 2023-03-23 01:55:44 --> URI Class Initialized
+INFO  - 2023-03-23 01:55:44 --> Router Class Initialized
+INFO  - 2023-03-23 01:55:44 --> Output Class Initialized
+INFO  - 2023-03-23 01:55:44 --> Security Class Initialized
+DEBUG - 2023-03-23 01:55:44 --> Global POST, GET and COOKIE data sanitized
+INFO  - 2023-03-23 01:55:44 --> Input Class Initialized
+INFO  - 2023-03-23 01:55:45 --> Language Class Initialized
+INFO  - 2023-03-23 01:55:45 --> Loader Class Initialized
+DEBUG - 2023-03-23 01:55:45 --> Config file loaded: /vhosts/acs/src/application/config/test_data.php
+INFO  - 2023-03-23 01:55:45 --> Helper loaded: url_helper
+INFO  - 2023-03-23 01:55:45 --> Helper loaded: common_helper
+INFO  - 2023-03-23 01:55:45 --> Controller Class Initialized

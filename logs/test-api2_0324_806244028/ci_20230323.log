@@ -1,0 +1,60 @@
+INFO  - 2023-03-23 01:55:44 --> Config Class Initialized
+INFO  - 2023-03-23 01:55:44 --> Hooks Class Initialized
+DEBUG - 2023-03-23 01:55:44 --> UTF-8 Support Enabled
+INFO  - 2023-03-23 01:55:44 --> Utf8 Class Initialized
+INFO  - 2023-03-23 01:55:44 --> URI Class Initialized
+INFO  - 2023-03-23 01:55:44 --> Router Class Initialized
+INFO  - 2023-03-23 01:55:44 --> Output Class Initialized
+INFO  - 2023-03-23 01:55:44 --> Security Class Initialized
+DEBUG - 2023-03-23 01:55:44 --> Global POST, GET and COOKIE data sanitized
+INFO  - 2023-03-23 01:55:44 --> Input Class Initialized
+INFO  - 2023-03-23 01:55:45 --> Language Class Initialized
+INFO  - 2023-03-23 01:55:45 --> Loader Class Initialized
+DEBUG - 2023-03-23 01:55:45 --> Config file loaded: /vhosts/acs/src/application/config/test_data.php
+INFO  - 2023-03-23 01:55:45 --> Helper loaded: url_helper
+INFO  - 2023-03-23 01:55:45 --> Helper loaded: common_helper
+INFO  - 2023-03-23 01:55:45 --> Controller Class Initialized
+ERROR - 2023-03-23 01:55:45 --> Severity: 8192 --> str_replace(): Passing null to parameter #3 ($subject) of type array|string is deprecated /vhosts/acs/src/system/core/Output.php 458
+INFO  - 2023-03-23 01:55:45 --> Final output sent to browser
+DEBUG - 2023-03-23 01:55:45 --> Total execution time: 0.5004
+INFO  - 2023-03-23 01:56:07 --> Config Class Initialized
+INFO  - 2023-03-23 01:56:07 --> Hooks Class Initialized
+DEBUG - 2023-03-23 01:56:07 --> UTF-8 Support Enabled
+INFO  - 2023-03-23 01:56:07 --> Utf8 Class Initialized
+INFO  - 2023-03-23 01:56:07 --> URI Class Initialized
+INFO  - 2023-03-23 01:56:07 --> Router Class Initialized
+INFO  - 2023-03-23 01:56:07 --> Output Class Initialized
+INFO  - 2023-03-23 01:56:07 --> Security Class Initialized
+DEBUG - 2023-03-23 01:56:07 --> Global POST, GET and COOKIE data sanitized
+INFO  - 2023-03-23 01:56:07 --> Input Class Initialized
+INFO  - 2023-03-23 01:56:07 --> Language Class Initialized
+INFO  - 2023-03-23 01:56:07 --> Loader Class Initialized
+DEBUG - 2023-03-23 01:56:07 --> Config file loaded: /vhosts/acs/src/application/config/test_data.php
+INFO  - 2023-03-23 01:56:07 --> Helper loaded: url_helper
+INFO  - 2023-03-23 01:56:07 --> Helper loaded: common_helper
+INFO  - 2023-03-23 01:56:07 --> Controller Class Initialized
+ERROR - 2023-03-23 01:56:07 --> Severity: 8192 --> str_replace(): Passing null to parameter #3 ($subject) of type array|string is deprecated /vhosts/acs/src/system/core/Output.php 458
+INFO  - 2023-03-23 01:56:07 --> Final output sent to browser
+DEBUG - 2023-03-23 01:56:07 --> Total execution time: 0.2339
+INFO  - 2023-03-23 01:57:21 --> Config Class Initialized
+INFO  - 2023-03-23 01:57:21 --> Hooks Class Initialized
+DEBUG - 2023-03-23 01:57:21 --> UTF-8 Support Enabled
+INFO  - 2023-03-23 01:57:21 --> Utf8 Class Initialized
+INFO  - 2023-03-23 01:57:21 --> URI Class Initialized
+INFO  - 2023-03-23 01:57:21 --> Router Class Initialized
+INFO  - 2023-03-23 01:57:21 --> Output Class Initialized
+INFO  - 2023-03-23 01:57:21 --> Security Class Initialized
+DEBUG - 2023-03-23 01:57:21 --> Global POST, GET and COOKIE data sanitized
+INFO  - 2023-03-23 01:57:21 --> Input Class Initialized
+INFO  - 2023-03-23 01:57:21 --> Language Class Initialized
+INFO  - 2023-03-23 01:57:21 --> Loader Class Initialized
+DEBUG - 2023-03-23 01:57:21 --> Config file loaded: /vhosts/acs/src/application/config/test_data.php
+INFO  - 2023-03-23 01:57:21 --> Helper loaded: url_helper
+INFO  - 2023-03-23 01:57:21 --> Helper loaded: common_helper
+INFO  - 2023-03-23 01:57:21 --> Controller Class Initialized
+ERROR - 2023-03-23 01:57:21 --> Severity: 8192 --> str_replace(): Passing null to parameter #3 ($subject) of type array|string is deprecated /vhosts/acs/src/system/core/Output.php 458
+INFO  - 2023-03-23 01:57:21 --> Final output sent to browser
+DEBUG - 2023-03-23 01:57:21 --> Total execution time: 0.1702
+INFO  - 2023-03-23 01:58:05 --> Config Class Initialized
+INFO  - 2023-03-23 01:58:05 --> Hooks Class Initialized
+DEBUG - 2023-03-23 01:58:05 --> UTF-8 Support Enabled
