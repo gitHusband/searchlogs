@@ -32,8 +32,16 @@ Usage:
   --line-offset-reg         It's allowed to display line without check if the line number is less than ((matchLineNumber+noCheckLineOffset))
                             - Set noCheckLineOffset if the line matches reg
                             - Format: reg1,noCheckLineOffset1,reg2,noCheckLineOffset2
-  --file-time-reg           March datetime of the log files name
-  --line-time-reg           March datetime of the a line of the log files
+  --file-time-reg           If match datetime of the log files name with reg, then display the file if checking datetime success
+                            If empty regs, then display all the files
+                            - Option Format: reg1,format1,reg2,format2
+                                reg1/reg2: Match datetime of the log files name
+                                format1/format2: File datetime format, use it to convert matched datetime string to timestamp
+  --line-time-reg           If match datetime of a line of log file, then display the file if checking datetime success
+                            If empty regs, then display all the lines
+                            - Option Format: reg1,format1,reg2,format2
+                                reg1/reg2: Match datetime of a line of log file
+                                format1/format2: Line datetime format, use it to convert matched datetime string to timestamp
   -f, --follow              To not stop when end of log files is reached, but rather to wait for additional data to be appended to the log files
   -h, --help                Display this help and exit
  
@@ -85,7 +93,7 @@ function getDefaultDatetime()
     echo $defaultDatetime
 }
 
-function strToTime()
+function defaultDateToTime()
 {
     local dateTimeStr=$1
     local timestamp=0
@@ -99,68 +107,48 @@ function strToTime()
     echo $timestamp
 }
 
-os=$(getOS)
+function fileDateToTime()
+{
+    local dateTimeStr=$1
+    local fileDatetimeFormat=$2
+    local timestamp=0
 
-# Find log files in here
-path=`pwd`
-# Regular expression of log file name
-name='*.log'
-# Search the logs write after this time
-startDatetime=$(getDefaultDatetime)
-# Search the lines of log files that match this regular expression
-matchReg="^ERROR|WARNING|CRITICAL"
-# Options of command find
-findOpts=""
-# Save logs that searched
-isSaveLogs=0
-# Save logs file path
-savePath="`pwd`/searchlogs_result"
-# Save file name suffix
-saveNameSuffix='.search'
-# Clean the save logs and exit
-isClean=0
-# Clean the save logs and then search logs
-isReset=0
-# It's allowed to display line without check if the line number is less than ((matchLineNumber+noCheckLineOffset))
-# - Set noCheckLineOffset if the line matches reg
-# - Format: reg1,noCheckLineOffset1,reg2,noCheckLineOffset2
-lineOffsetReg=("^CRITICAL" 5 "Unexpected Exception" 6 "Debug backtrace" 6 "session data" 5)
-# March datetime of the log files name
-fileDatetimeReg="^.*/.*([0-9]{4}-[0-9]{2}-[0-9]{2}|[0-9]{8})"
-# March datetime of the a line of the log files
-lineDatetimeReg="([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2})"
-# If set to 1, means to not stop when end of log files is reached, but rather to wait for additional data to be appended to the log files
-followFlag=0
-# Follow interval, default to 3 seconds
-followInterval=3
+    if [ $os = "mac" ]; then
+        # The end time of the date
+        dateTimeStr="$dateTimeStr 23:59:59"
+        fileDatetimeFormat="$fileDatetimeFormat %H:%M:%S"
 
-shortOpts="hp:n:s:m:fc"
-longOpts="help,path:,name:,start-datetime:,match-reg:,find-opts:,save-log,save-path:,line-offset-reg:,file-time-reg:,line-time-reg:,follow,clean,reset"
-getoptCmd=$(getopt -o $shortOpts -l "$longOpts" -n "$0" -- "$@")
-[ $? -ne 0 ] && { echo "Try '$0 --help' for more information."; exit 1; }
+        timestamp=`date -j -f "$fileDatetimeFormat" "$dateTimeStr" +%s` # Mac
+    else
+        if [[ $dateTimeStr =~ [0-9]{8} ]]; then
+            day=${dateTimeStr:$((${#dateTimeStr} - 2))}
+            month=${dateTimeStr:$((${#dateTimeStr} - 4)):2}
+            year=${dateTimeStr:0:$((${#dateTimeStr} - 4))}
+            dateTimeStr="$year-$month-$day"
+        fi
+        # The end time of the date
+        dateTimeStr="$dateTimeStr 23:59:59"
 
-eval set -- "$getoptCmd"
-while true; do
-    case "$1" in
-        -h|--help) help $0;exit 0;;
-        -p|--path) path=$2;shift;;
-        -n|--name) name=$2;shift;;
-        -s|--start-datetime) startDatetime=$2;shift;;
-        -m|--match-reg) matchReg=$2;shift;;
-        --find-opts) findOpts=$2;shift;;
-        --save-log) isSaveLogs=1;;
-        --save-path) savePath="$2/searchlogs_result";shift;;
-        -c|--clean) isClean=1;;
-        --reset) isReset=1;;
-        --line-offset-reg) IFS=',' read -ra lineOffsetReg <<< "$2";shift;;
-        --file-time-reg) fileDatetimeReg=$2;shift;;
-        --line-time-reg) lineDatetimeReg=$2;shift;;
-        -f|--follow) followFlag=1;;
-        --) shift; break;;
-        *) echo "$1 $2 is not supported";exit 1;;
-    esac
-    shift
-done
+        timestamp=`date -d "$dateTimeStr" +%s` # Linux
+    fi
+
+    echo $timestamp
+}
+
+function lineDateToTime()
+{
+    local dateTimeStr=$1
+    local lineDatetimeFormat=$2
+    local timestamp=0
+
+    if [ $os = "mac" ]; then
+        timestamp=`date -j -f "$lineDatetimeFormat" "$dateTimeStr" +%s` # Mac
+    else
+        timestamp=`date -d "$dateTimeStr" +%s` # Linux
+    fi
+
+    echo $timestamp
+}
 
 # flag:
 # - 0: Not follow flag
@@ -181,61 +169,128 @@ function echoMsg()
 function isAllowedFileChecker()
 {
     local file=$1
+    local fileDatetimeReg=$2
+    local fileDatetimeFormat=$3
+    local fileDatetime=""
+    local fileTimestamp=0
+
+    # If empty fileDatetimeReg, then display all the files
+    if [[ -z "$fileDatetimeReg" ]]; then return 0; fi
     
     if [[ $file =~ $fileDatetimeReg ]]; then
         fileDatetime=${BASH_REMATCH[1]}
-        if [[ $fileDatetime =~ [0-9]{8} ]]; then
-            day=${fileDatetime:$((${#fileDatetime} - 2))}
-            month=${fileDatetime:$((${#fileDatetime} - 4)):2}
-            year=${fileDatetime:0:$((${#fileDatetime} - 4))}
-            fileDatetime="$year-$month-$day"
-        fi
-        fileDatetime="$fileDatetime 23:59:59"
-        # echo $fileDatetime
+        
+        fileTimestamp=$(fileDateToTime "$fileDatetime" "$fileDatetimeFormat")
+        # echo "In isAllowedFileChecker: $fileDatetimeReg - $fileDatetimeFormat"
+        # echo "In isAllowedFileChecker: $file - $fileTimestamp - $startTimestamp = $((fileTimestamp - startTimestamp))"
+        if [ $fileTimestamp -ge $startTimestamp ]; then
+            # echo "fileDatetime($fileDatetime#$fileTimestamp) >= startDatetime($startDatetime#$startTimestamp)"
 
-        startTimeStamp=$(strToTime "$startDatetime")
-        fileTimeStamp=$(strToTime "$fileDatetime")
-        if [ $fileTimeStamp -ge $startTimeStamp ]; then
-            # echo "fileDatetime($fileDatetime#$fileTimeStamp) >= startDatetime($startDatetime#$startTimeStamp)"
-
-            # Will display this file
-            return 1
-        else
-            # echo "fileDatetime($fileDatetime#$fileTimeStamp) < startDatetime($startDatetime#$startTimeStamp)"
-
-            # Will not display this file
+            # Display this file
             return 0
+        else
+            # echo "fileDatetime($fileDatetime#$fileTimestamp) < startDatetime($startDatetime#$startTimestamp)"
+
+            # Don't display this file
+            return 2
         fi
     fi
 
-    return 0
+    # Will try to match other regs
+    # If not more reg, then don't display this line
+    return 1
+}
+
+function isAllowedFileCheckers()
+{
+    # Allowed if no regs
+    if [[ $fileDatetimeRegsLength -eq 0 ]]; then return 0; fi
+
+    local file=$1
+    local fileDatetimeReg=""
+    local fileDatetimeFormat=""
+    local isNotAllowedFileFlag=1
+
+    local fileDatetimeRegIndex=0
+    while ((fileDatetimeRegIndex < $fileDatetimeRegsLength))
+    do
+        fileDatetimeReg="${fileDatetimeRegs[$fileDatetimeRegIndex]}"
+        ((fileDatetimeRegIndex++))
+        fileDatetimeFormat="${fileDatetimeRegs[$fileDatetimeRegIndex]}"
+        isAllowedFileChecker "$file" "$fileDatetimeReg" "$fileDatetimeFormat"
+        isNotAllowedFileFlag=`echo $?`
+        if [ $isNotAllowedFileFlag -eq 0 ]; then
+            return 0
+        elif [ $isNotAllowedFileFlag -eq 2 ]; then
+            return 2
+        fi
+        ((fileDatetimeRegIndex++))
+    done
+
+    return 1
 }
 
 # Check if a line is allowed to dislpay
 function isAllowedLineChecker()
 {
     local line=$1
+    local lineDatetimeReg=$2
+    local lineDatetimeFormat=$3
+    local lineDatetime=""
+    local lineTimestamp=0
+
+    # If empty lineDatetimeReg, then display all the lines
+    if [[ -z "$lineDatetimeReg" ]]; then return 0; fi
 
     if [[ $line =~ $lineDatetimeReg ]]; then
         lineDatetime=${BASH_REMATCH[1]}
-        # echo $lineDatetime
 
-        startTimeStamp=$(strToTime "$startDatetime")
-        lineTimeStamp=$(strToTime "$lineDatetime")
-        if [ $lineTimeStamp -ge $startTimeStamp ]; then
-            # echo "lineDatetime($lineDatetime#$lineTimeStamp) >= startDatetime($startDatetime#$startTimeStamp)"
+        lineTimestamp=$(lineDateToTime "$lineDatetime" "$lineDatetimeFormat")
+        if [ $lineTimestamp -ge $startTimestamp ]; then
+            # echo "lineDatetime($lineDatetime#$lineTimestamp) >= startDatetime($startDatetime#$startTimestamp)"
 
-            # Will display this line
-            return 1
-        else
-            # echo "lineDatetime($lineDatetime#$lineTimeStamp) < startDatetime($startDatetime#$startTimeStamp)"
-
-            # Will not display this line
+            # Display this line
             return 0
+        else
+            # echo "lineDatetime($lineDatetime#$lineTimestamp) < startDatetime($startDatetime#$startTimestamp)"
+
+            # Don't display this line
+            return 2
         fi
     fi
 
-    return 0
+    # Will try to match other regs
+    # If not more reg, then don't display this line
+    return 1
+}
+
+function isAllowedLineCheckers()
+{
+    # Allowed if no regs
+    if [[ $lineDatetimeRegsLength -eq 0 ]]; then return 0; fi
+
+    local line=$1
+    local lineDatetimeReg=""
+    local lineDatetimeFormat=""
+    local isNotAllowedLineFlag=1
+
+    local lineDatetimeRegIndex=0
+    while ((lineDatetimeRegIndex < $lineDatetimeRegsLength))
+    do
+        lineDatetimeReg="${lineDatetimeRegs[$lineDatetimeRegIndex]}"
+        ((lineDatetimeRegIndex++))
+        lineDatetimeFormat="${lineDatetimeRegs[$lineDatetimeRegIndex]}"
+        isAllowedLineChecker "$line" "$lineDatetimeReg" "$lineDatetimeFormat"
+        isNotAllowedLineFlag=`echo $?`
+        if [ $isNotAllowedLineFlag -eq 0 ]; then
+            return 0
+        elif [ $isNotAllowedLineFlag -eq 2 ]; then
+            return 2
+        fi
+        ((lineDatetimeRegIndex++))
+    done
+
+    return 1
 }
 
 # It's allowed to display line without check if the line number is less than ((matchLineNumber+noCheckLineOffset))
@@ -244,14 +299,14 @@ function getLineOffset()
     local line=$1
     local lineOffset=0
     local lineOffsetRegIndex=0
-    while ((lineOffsetRegIndex < ${#lineOffsetReg[@]}))
+    while ((lineOffsetRegIndex < $lineOffsetRegsLength))
     do
-        # echo "$lineOffsetRegIndex - ${lineOffsetReg[$lineOffsetRegIndex]}"
-        if [[ $line =~ ${lineOffsetReg[$lineOffsetRegIndex]} ]]; then
+        # echo "$lineOffsetRegIndex - ${lineOffsetRegs[$lineOffsetRegIndex]}"
+        if [[ $line =~ ${lineOffsetRegs[$lineOffsetRegIndex]} ]]; then
             # echo -e "\033[33m  ${BASH_REMATCH[1]}\033[0m"
             ((lineOffsetRegIndex++))
-            # echo "#$lineOffsetRegIndex ${lineOffsetReg[$lineOffsetRegIndex]}"
-            lineOffset=${lineOffsetReg[$lineOffsetRegIndex]}
+            # echo "#$lineOffsetRegIndex ${lineOffsetRegs[$lineOffsetRegIndex]}"
+            lineOffset=${lineOffsetRegs[$lineOffsetRegIndex]}
             break;
         else 
             ((lineOffsetRegIndex++))
@@ -455,11 +510,11 @@ function displayFile()
 {
     local logFile=$1
     
-    isAllowedFileChecker $logFile
-    isAllowedFileFlag=`echo $?`
-    if [ $isAllowedFileFlag -eq 0 ]; then
+    isAllowedFileCheckers "$logFile"
+    local isNotAllowedFileFlag=`echo $?`
+    if [ ! $isNotAllowedFileFlag -eq 0 ]; then
         # echo "Expired file!"
-        return 0
+        return 1
     fi
 
     echoMsg "\033[4;36m# Log File: $logFile\033[0m" $FLAG_NOT_FOLLOW
@@ -475,7 +530,7 @@ function displayFile()
     local lastLineNumber=$(getLastLineNumber $logFile "$saveFile")
 
     local currentLineNumber=0
-    local isAllowedLineFlag=0
+    local isNotAllowedLineFlag=1
     local noCheckLineOffset=0
     local noCheckLineNumber=0
     displayTotalLines=$(getLastDisplayTotalLines $logFile "$saveFile")
@@ -489,13 +544,13 @@ function displayFile()
         fi
 
         # If a line is allowed to display, then all the lines after it is allowed to display
-        if [ $isAllowedLineFlag -eq 0 ]; then
+        if [ ! $isNotAllowedLineFlag -eq 0 ]; then
             # Check if the line is allowed to display
             # line has space, so need to add ""
-            isAllowedLineChecker "$line"
-            isAllowedLineFlag=`echo $?`
+            isAllowedLineCheckers "$line"
+            isNotAllowedLineFlag=`echo $?`
 
-            if [ $isAllowedLineFlag -eq 0 ]; then
+            if [ ! $isNotAllowedLineFlag -eq 0 ]; then
                 continue
             fi
         fi
@@ -583,7 +638,7 @@ function persistFollowData()
         saveFile="${followFiles[$logFile]}"
 
         lastLineNumber=${followData["$logFile,lastLineNumber"]}
-        if [[ -n $lastLineNumber ]]; then
+        if [[ -n "$lastLineNumber" ]]; then
             displayLines=${followData["$logFile,displayLines"]}
             datetime=${followData["$logFile,datetime"]}
             # echo -e "\033[4;36m# Last Line: $lastLineNumber - Display Total Lines: $displayLines - $datetime - $logFile\033[0m"
@@ -641,6 +696,92 @@ function trapINT()
     echo -e "Exited!"
     exit
 }
+
+os=$(getOS)
+
+# Find log files in here
+path=`pwd`
+# Regular expression of log file name
+name='*.log'
+# Search the logs write after this time
+startDatetime=$(getDefaultDatetime)
+startTimestamp=$(defaultDateToTime "$startDatetime")
+# Search the lines of log files that match this regular expression
+matchReg="^ERROR|WARNING|CRITICAL"
+# Options of command find
+findOpts=""
+# Save logs that searched
+isSaveLogs=0
+# Save logs file path
+savePath="`pwd`/searchlogs_result"
+# Save file name suffix
+saveNameSuffix='.search'
+# Clean the save logs and exit
+isClean=0
+# Clean the save logs and then search logs
+isReset=0
+# It's allowed to display line without check if the line number is less than ((matchLineNumber+noCheckLineOffset))
+# - Set noCheckLineOffset if the line matches reg
+# - Option Format: reg1,noCheckLineOffset1,reg2,noCheckLineOffset2
+lineOffsetRegs=("^CRITICAL" 5 "Unexpected Exception" 6 "Debug backtrace" 6 "session data" 5)
+lineOffsetRegsLength=${#lineOffsetRegs[@]}
+# If match datetime of the log files name with reg, then display the file if checking datetime success
+# If empty regs, then display all the files
+# - Option Format: reg1,format1,reg2,format2
+#   reg1/reg2: Match datetime of the log files name
+#   format1/format2: File datetime format, use it to convert matched datetime string to timestamp
+fileDatetimeRegs=(
+    "^.*/.*([0-9]{4}-[0-9]{2}-[0-9]{2})" "%Y-%m-%d"
+    "^.*/.*([0-9]{8})" "%Y%m%d"
+)
+fileDatetimeRegsLength=${#fileDatetimeRegs[@]}
+# If match datetime of a line of log file, then display the file if checking datetime success
+# If empty regs, then display all the lines
+# - Option Format: reg1,format1,reg2,format2
+#   reg1/reg2: Match datetime of a line of log file
+#   format1/format2: Line datetime format, use it to convert matched datetime string to timestamp
+lineDatetimeRegs=(
+    "([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2})" "%Y-%m-%d %H:%M:%S"
+)
+lineDatetimeRegsLength=${#lineDatetimeRegs[@]}
+# If set to 1, means to not stop when end of log files is reached, but rather to wait for additional data to be appended to the log files
+followFlag=0
+# Follow interval, default to 3 seconds
+followInterval=3
+# Export functions for other shell calling
+isExport=0
+
+shortOpts="hp:n:s:m:fc"
+longOpts="help,path:,name:,start-datetime:,match-reg:,find-opts:,save-log,save-path:,line-offset-reg:,file-time-reg:,line-time-reg:,follow,clean,reset,export"
+getoptCmd=$(getopt -o $shortOpts -l "$longOpts" -n "$0" -- "$@")
+[ $? -ne 0 ] && { echo "Try '$0 --help' for more information."; exit 1; }
+
+eval set -- "$getoptCmd"
+while true; do
+    case "$1" in
+        -h|--help) help $0;exit 0;;
+        -p|--path) path=$2;shift;;
+        -n|--name) name=$2;shift;;
+        -s|--start-datetime) startDatetime=$2;startTimestamp=$(defaultDateToTime "$startDatetime");shift;;
+        -m|--match-reg) matchReg=$2;shift;;
+        --find-opts) findOpts=$2;shift;;
+        --save-log) isSaveLogs=1;;
+        --save-path) savePath="$2/searchlogs_result";shift;;
+        -c|--clean) isClean=1;;
+        --reset) isReset=1;;
+        --line-offset-reg) IFS=',' read -ra lineOffsetRegs <<< "$2";lineOffsetRegsLength=${#lineOffsetRegs[@]};shift;;
+        --file-time-reg) IFS=',' read -ra fileDatetimeRegs <<< "$2";fileDatetimeRegsLength=${#fileDatetimeRegs[@]};shift;;
+        --line-time-reg) IFS=',' read -ra lineDatetimeRegs <<< "$2";lineDatetimeRegsLength=${#lineDatetimeRegs[@]};shift;;
+        -f|--follow) followFlag=1;;
+        --export) isExport=1;;
+        --) shift; break;;
+        *) echo "$1 $2 is not supported";exit 1;;
+    esac
+    shift
+done
+
+# Export functions for other shell calling
+if [[ $isExport -eq 1 ]]; then return 0; fi
 
 # Delete save files and exit
 if [[ $isClean -eq 1 ]]; then clean; fi

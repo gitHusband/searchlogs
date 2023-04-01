@@ -68,8 +68,8 @@ DEBUG - 2023-03-23 01:58:05 --> UTF-8 Support Enabled
 DEBUG - 2023-03-23 01:58:05 --> UTF-8 Support Enabled
 DEBUG - 2023-03-23 01:58:05 --> UTF-8 Support Enabled
 DEBUG - 2023-03-23 01:58:05 --> UTF-8 Support Enabled
-ERROR - 2023-03-24 09:18:19 --> Error - TRX:() Response Code:() - Undefined array key "number" - 0 - File:/vhosts/app_v1/app/Controllers/Payments/PaymentsCommon.php Function:errorHandler Line:1325
-ERROR - 2023-03-24 09:18:19 --> Unexpected Exception: {
+ERROR - 2023-03-23 09:18:19 --> Error - TRX:() Response Code:() - Undefined array key "number" - 0 - File:/vhosts/app_v1/app/Controllers/Payments/PaymentsCommon.php Function:errorHandler Line:1325
+ERROR - 2023-03-23 09:18:19 --> Unexpected Exception: {
     "current_url": "https://dev-api.acquired.com/v1/index.php/payments",
     "client_ip": "172.18.0.1",
     "user_agent": "PostmanRuntime/7.31.1",
