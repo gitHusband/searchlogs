@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Replace !/bin/bash, because Mac `brew install bash`, the bash is /usr/local/bin/bash, not /bin/bash
 
-source ./searchlogs.sh --export --start-datetime "2023-04-01 12:00:00"
+source ./searchlogs.sh --export --start-datetime "2023-04-01 08:00:00"
 
 # function parseFileTimeOpt() {
 #     local optArray=()
