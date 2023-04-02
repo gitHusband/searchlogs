@@ -79,6 +79,8 @@ function getOS() {
     echo $os
 }
 
+os=$(getOS)
+
 # Default to yesterday
 function getDefaultDatetime()
 {
@@ -95,60 +97,135 @@ function getDefaultDatetime()
 
 function defaultDateToTime()
 {
-    local dateTimeStr=$1
+    local defaultDateTimeStr=$1
     local timestamp=0
 
     if [ $os = "mac" ]; then
-        timestamp=`date -j -f "%Y-%m-%d %H:%M:%S" "$dateTimeStr" +%s` # Mac
+        timestamp=`date -j -f "%Y-%m-%d %H:%M:%S" "$defaultDateTimeStr" +%s` # Mac
     else
-        timestamp=`date -d "$dateTimeStr" +%s` # Linux
+        timestamp=`date -d "$defaultDateTimeStr" +%s` # Linux
     fi
 
     echo $timestamp
 }
 
-function fileDateToTime()
-{
-    local dateTimeStr=$1
-    local fileDatetimeFormat=$2
-    local timestamp=0
+# Convert file date to time
+# If you have special date format which `date` command can not convert, you can overloaded this function by yourself
+if [ $os = "mac" ]; then
+    function fileDateToTime()
+    {
+        local -n fileTimestampRef=$1
+        local fileDatetimeStr=$2
+        local fileDatetimeFormat=$3
 
-    if [ $os = "mac" ]; then
+        fileDateComplete fileDatetimeStr fileDatetimeFormat
+
+        fileTimestampRef=`date -j -f "$fileDatetimeFormat" "$fileDatetimeStr" +%s` # Mac
+
+        # echo "FILE: date -j -f "$fileDatetimeFormat" "$fileDatetimeStr" +%s ======> $fileTimestampRef"
+    }
+
+    # Default file date complete
+    # Why need date complete in Mac?
+    # Because `date` command use the current "%H:%M:%S" if you don't set it
+    function fileDateComplete()
+    {
+        local -n fileDatetimeStrRef=$1
+        local -n fileDatetimeFormatRef=$2
+
         # The end time of the date
-        dateTimeStr="$dateTimeStr 23:59:59"
-        fileDatetimeFormat="$fileDatetimeFormat %H:%M:%S"
+        fileDatetimeStrRef="$fileDatetimeStrRef 23:59:59"
+        fileDatetimeFormatRef="$fileDatetimeFormatRef %H:%M:%S"
 
-        timestamp=`date -j -f "$fileDatetimeFormat" "$dateTimeStr" +%s` # Mac
-    else
-        if [[ $dateTimeStr =~ [0-9]{8} ]]; then
-            day=${dateTimeStr:$((${#dateTimeStr} - 2))}
-            month=${dateTimeStr:$((${#dateTimeStr} - 4)):2}
-            year=${dateTimeStr:0:$((${#dateTimeStr} - 4))}
-            dateTimeStr="$year-$month-$day"
+        # echo "Mac $fileDatetimeStrRef - $fileDatetimeFormatRef";
+    }
+
+    # Call this definer when you start to match a file date reg
+    # Do use this function for now
+    function fileDateCompleteDefiner()
+    {
+        local dateTimeStr=$1
+        local fileDatetimeFormat=$2
+
+        if [ $fileDatetimeFormat = "%Y-%m-%d" -o $fileDatetimeFormat = "%Y%m%d" ]; then
+            function fileDateComplete()
+            {
+                local -n fileDatetimeStrRef=$1
+                local -n fileDatetimeFormatRef=$2
+
+                # The end time of the date
+                fileDatetimeStrRef="$fileDatetimeStrRef 23:59:59"
+                fileDatetimeFormatRef="$fileDatetimeFormatRef %H:%M:%S"
+            }
+        else 
+            # Do nothing
+            function fileDateComplete()
+            {
+                return 0
+            }
         fi
+    }
+else
+    function fileDateToTime()
+    {
+        local -n fileTimestampRef=$1
+        local fileDatetimeStr=$2
+        local fileDatetimeFormat=$3
+
+        fileDateComplete fileDatetimeStr fileDatetimeFormat
+
+        fileTimestampRef=`date -d "$fileDatetimeStr" +%s` # Linux
+
+        # echo "FILE: date -d "$fileDatetimeStr" +%s ======> $fileTimestampRef"
+    }
+
+    # Default file date complete
+    # Why need date complete in Linux?
+    # Because `date` command do NOT support special date format, such as "%Y%m%d", must turn it to "%Y-%m-%d"
+    function fileDateComplete()
+    {
+        local -n fileDatetimeStrRef=$1
+        local -n fileDatetimeFormatRef=$2
+
+        if [ $fileDatetimeFormatRef = "%Y%m%d" ]; then
+            day=${fileDatetimeStrRef:$((${#fileDatetimeStrRef} - 2))}
+            month=${fileDatetimeStrRef:$((${#fileDatetimeStrRef} - 4)):2}
+            year=${fileDatetimeStrRef:0:$((${#fileDatetimeStrRef} - 4))}
+            fileDatetimeStrRef="$year-$month-$day"
+        fi
+
         # The end time of the date
-        dateTimeStr="$dateTimeStr 23:59:59"
+        fileDatetimeStrRef="$fileDatetimeStrRef 23:59:59"
 
-        timestamp=`date -d "$dateTimeStr" +%s` # Linux
-    fi
+        # echo "Mac $fileDatetimeStrRef - $fileDatetimeFormatRef";
+    }
+fi
 
-    echo $timestamp
-}
+# Convert line date to time
+# If you have special date format which `date` command can not convert, you can overloaded this function by yourself
+if [ $os = "mac" ]; then
+    function lineDateToTime()
+    {
+        local -n lineTimestampRef=$1
+        local lineDatetimeStr=$2
+        local lineDatetimeFormat=$3
 
-function lineDateToTime()
-{
-    local dateTimeStr=$1
-    local lineDatetimeFormat=$2
-    local timestamp=0
+        lineTimestampRef=`date -j -f "$lineDatetimeFormat" "$lineDatetimeStr" +%s` # Mac
 
-    if [ $os = "mac" ]; then
-        timestamp=`date -j -f "$lineDatetimeFormat" "$dateTimeStr" +%s` # Mac
-    else
-        timestamp=`date -d "$dateTimeStr" +%s` # Linux
-    fi
+        # echo "LINE: date -j -f "$lineDatetimeFormat" "$lineDatetimeStr" +%s ======> $lineTimestampRef"
+    }
+else
+    function lineDateToTime()
+    {
+        local -n lineTimestampRef=$1
+        local lineDatetimeStr=$2
+        local lineDatetimeFormat=$3
 
-    echo $timestamp
-}
+        lineTimestampRef=`date -d "$lineDatetimeStr" +%s` # Linux
+
+        # echo "LINE: date -d "$lineDatetimeStr" +%s ======> $lineTimestampRef"
+    }
+fi
 
 # flag:
 # - 0: Not follow flag
@@ -180,7 +257,7 @@ function isAllowedFileChecker()
     if [[ $file =~ $fileDatetimeReg ]]; then
         fileDatetime=${BASH_REMATCH[1]}
         
-        fileTimestamp=$(fileDateToTime "$fileDatetime" "$fileDatetimeFormat")
+        fileDateToTime fileTimestamp "$fileDatetime" "$fileDatetimeFormat"
         # echo "In isAllowedFileChecker: $fileDatetimeReg - $fileDatetimeFormat"
         # echo "In isAllowedFileChecker: $file - $fileTimestamp - $startTimestamp = $((fileTimestamp - startTimestamp))"
         if [ $fileTimestamp -ge $startTimestamp ]; then
@@ -245,7 +322,7 @@ function isAllowedLineChecker()
     if [[ $line =~ $lineDatetimeReg ]]; then
         lineDatetime=${BASH_REMATCH[1]}
 
-        lineTimestamp=$(lineDateToTime "$lineDatetime" "$lineDatetimeFormat")
+        lineDateToTime lineTimestamp "$lineDatetime" "$lineDatetimeFormat"
         if [ $lineTimestamp -ge $startTimestamp ]; then
             # echo "lineDatetime($lineDatetime#$lineTimestamp) >= startDatetime($startDatetime#$startTimestamp)"
 
@@ -696,8 +773,6 @@ function trapINT()
     echo -e "Exited!"
     exit
 }
-
-os=$(getOS)
 
 # Find log files in here
 path=`pwd`
