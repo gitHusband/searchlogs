@@ -1,5 +1,7 @@
 # searchlogs - 日志查找工具
 
+> [github searchlogs](https://github.com/gitHusband/searchlogs)
+
 一般看日志，我们使用 `find + grep` 命令已经足够。
 
 **为什么写 searchlogs?**
@@ -18,7 +20,10 @@
 - 支持持久化搜索结果
 - 支持后台监听文件增长，包括新增文件
 
-例子：
+**安装**
+[github 下载文件 searchlogs.sh](https://github.com/gitHusband/searchlogs/blob/main/searchlogs.sh)
+
+**例子：**
 ```bash
 $ ./searchlogs.sh --path /data/path
 ```
@@ -151,6 +156,11 @@ $ ./searchlogs.sh --file-time-reg "([0-9]{4}_[0-9]{2}_[0-9]{2}),%Y_%m_%d"
 - **注意，以上例子仅支持 Mac, Linux 不支持特殊格式**
 - Linux 特殊格式的支持正在开发中。。。
 
+又如，不排除任何文件
+```bash
+$ ./searchlogs.sh --file-time-reg ""
+```
+
 ### --line-time-reg 行时间匹配规则
 匹配行的日期，用于与 --start-datetime 比较
 若日期小于 --start-datetime，则忽略此行
@@ -168,6 +178,11 @@ $ ./searchlogs.sh --line-time-reg "([0-9]{4}_[0-9]{2}_[0-9]{2} [0-9]{2}:[0-9]{2}
 - **注意，以上例子仅支持 Mac, Linux 不支持特殊格式**
 - Linux 特殊格式的支持正在开发中。。。
 
+又如，不排除任何行
+```bash
+$ ./searchlogs.sh --line-time-reg ""
+```
+
 ### -f, --follow 监听模式
 后台监听文件增长，包括新增文件
 
@@ -180,3 +195,42 @@ $ ./searchlogs.sh --path /data/path --save-log -f
 
 ### -h, --help 帮助文档
 打印帮助文档
+
+## 配置文件
+由于可变因素太多，如果不想繁琐地设置选项，可一次性设置所有适合您自己的配置
+
+在相同目录下，创建 `config.sh` 文件
+例如，
+```bash
+#!/usr/bin/env bash
+# Replace !/bin/bash, because Mac `brew install bash`, the bash is /usr/local/bin/bash, not /bin/bash
+
+# Set By Option: -p, --path
+# Find log files in here
+path=`pwd`
+# Set By Option: -n, --name
+# Regular expression of log file name
+name='*.log'
+# Set By Option: -s, --start-datetime
+# Search the logs write after this time
+startDatetime=$(getDefaultDatetime)
+startTimestamp=$(defaultDateToTime "$startDatetime")
+# Set By Option: -m, --match-reg
+# Search the lines of log files that match this regular expression
+matchReg="^ERROR|WARNING|CRITICAL"
+```
+- 完整配置文件请参考： [config.example.sh](https://github.com/gitHusband/searchlogs/blob/main/config.example.sh)
+
+~~编写配置文件要求您有一定的 shell 基础~~
+需要注意的是，可以设置多个内容的选项。
+
+以 `--file-time-reg` 为例，这里以 逗号 分隔多个内容
+```bash
+--file-time-reg "([0-9]{4}_[0-9]{2}_[0-9]{2}),%Y_%m_%d"
+```
+对应的配置数组为，以 小括号 包裹，以 空格 分隔
+```bash
+fileDatetimeRegs=(
+    "([0-9]{4}_[0-9]{2}_[0-9]{2})" "%Y_%m_%d"
+)
+```
