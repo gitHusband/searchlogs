@@ -731,7 +731,8 @@ function follow()
 {
     # followCount=1
     local nMinute=0
-    # --mmin 0 means the log files must be modified in 60 seconds
+    if [ $os = "mac" ]; then nMinute=1; fi
+    # Find the log files modified in 60 seconds
     local findCommandFollow="$findCommand -mmin $nMinute"
     # echo $findCommandFollow
 
