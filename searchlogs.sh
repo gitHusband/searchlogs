@@ -254,7 +254,7 @@ function isAllowedFileChecker()
     # If empty fileDatetimeReg, then display all the files
     if [[ -z "$fileDatetimeReg" ]]; then return 0; fi
     
-    if [[ $file =~ $fileDatetimeReg ]]; then
+    if [[ "$file" =~ $fileDatetimeReg ]]; then
         fileDatetime=${BASH_REMATCH[1]}
         
         fileDateToTime fileTimestamp "$fileDatetime" "$fileDatetimeFormat"
@@ -294,6 +294,7 @@ function isAllowedFileCheckers()
         fileDatetimeReg="${fileDatetimeRegs[$fileDatetimeRegIndex]}"
         ((fileDatetimeRegIndex++))
         fileDatetimeFormat="${fileDatetimeRegs[$fileDatetimeRegIndex]}"
+        
         isAllowedFileChecker "$file" "$fileDatetimeReg" "$fileDatetimeFormat"
         isNotAllowedFileFlag=`echo $?`
         if [ $isNotAllowedFileFlag -eq 0 ]; then
@@ -411,14 +412,14 @@ function displayLine()
     if [ $lineNumber -le $noCheckLineNumber ]; then
         ((displayTotalLines++))
         echo -e "\033[33m  $line\033[0m"
-        if [[ -n "$saveFile" && -e $saveFile ]]; then echo "  $line" >> $saveFile; fi
+        if [[ -n "$saveFile" && -e $saveFile ]]; then echo "  $line" >> "$saveFile"; fi
         return $((noCheckLineNumber - lineNumber))
     fi
 
     if [[ $line =~ $matchReg ]]; then
         ((displayTotalLines++))
         echo -e "\033[32m$lineNumber:$line\033[0m"
-        if [[ -n "$saveFile" && -e $saveFile ]]; then echo "$lineNumber:$line" >> $saveFile; fi
+        if [[ -n "$saveFile" && -e $saveFile ]]; then echo "$lineNumber:$line" >> "$saveFile"; fi
         # noCheckLineOffset=0
         getLineOffset "$line"
         noCheckLineOffset=`echo $?`
@@ -430,11 +431,11 @@ function displayLine()
 # Create save file if need to save file
 function createSaveFile()
 {
-    local logFile=$1
-    local saveFile=${logFile/$pathWithoutEndSlash/$savePath}
+    local file=$1
+    local saveFile=${file/$pathWithoutEndSlash/$savePath}
     # saveFile=${saveFile/.log/.search.log}
     local saveFile=$saveFile$saveNameSuffix
-    # echo "1. $logFile"
+    # echo "1. $file"
     # echo "2. $saveFile"
 
     # saveName=${saveFile##*/}
@@ -444,8 +445,8 @@ function createSaveFile()
         mkdir -p $currentSavePath
     fi
 
-    if [ ! -e $saveFile ]; then
-        touch $saveFile
+    if [ ! -e "$saveFile" ]; then
+        touch "$saveFile"
     fi
 
     echo $saveFile;
@@ -455,38 +456,38 @@ function createSaveFile()
 # If save log, then save the "last line number"/"total lines"/"datetime" into save file
 function displayDetails()
 {
-    local logFile=$1
+    local file=$1
     local lastLineNumber=$2
     local saveFile=$3
     local displayLines=$4
 
     datetime=`date +"%Y-%m-%d %H:%M:%S"`
 
-    echoMsg "\033[4;36m# Last Line: $lastLineNumber - Display Total Lines: $displayLines - $datetime - $logFile\033[0m\n" $FLAG_NOT_FOLLOW
+    echoMsg "\033[4;36m# Last Line: $lastLineNumber - Display Total Lines: $displayLines - $datetime - $file\033[0m\n" $FLAG_NOT_FOLLOW
 
     if [ $followFlag = 1 ]; then
         # If follow new lines, display to terminal to know which file is the line belong to
-        if [ -z "${followData["$logFile,displayLines"]}" ] || [[ -n "${followData["$logFile,displayLines"]}" && $displayLines -gt ${followData["$logFile,displayLines"]} ]]; then
-            echo -e "\033[4;36m# Last Line: $lastLineNumber - Display Total Lines: $displayLines - $datetime - $logFile\033[0m\n"
+        if [ -z "${followData["$file,displayLines"]}" ] || [[ -n "${followData["$file,displayLines"]}" && $displayLines -gt ${followData["$file,displayLines"]} ]]; then
+            echo -e "\033[4;36m# Last Line: $lastLineNumber - Display Total Lines: $displayLines - $datetime - $file\033[0m\n"
         fi
     else
-        persistDetailsToSaveFile $logFile "$saveFile" $lastLineNumber $displayLines "$datetime"
+        persistDetailsToSaveFile "$file" "$saveFile" $lastLineNumber $displayLines "$datetime"
     fi
 
-    setFollowData $logFile $lastLineNumber $displayLines "$datetime" "$saveFile"
+    setFollowData "$file" $lastLineNumber $displayLines "$datetime" "$saveFile"
 }
 
 # Persist details to the end of the save file
 function persistDetailsToSaveFile()
 {
-    local logFile=$1
+    local file=$1
     local saveFile=$2
     local lastLineNumber=$3
     local displayLines=$4
     local datetime=$5
 
     if [[ -n "$saveFile" && -e $saveFile ]]; then 
-        echo "# Last Line: $lastLineNumber - Display Total Lines: $displayLines - $datetime - $logFile" >> $saveFile;
+        echo "# Last Line: $lastLineNumber - Display Total Lines: $displayLines - $datetime - $file" >> "$saveFile";
     fi
 
     # If no display line, then hide the save file
@@ -494,22 +495,22 @@ function persistDetailsToSaveFile()
         currentSaveName=${saveFile##*/}
         currentSavePath=${saveFile%/*}
         hiddenSaveFile="$currentSavePath/.$currentSaveName"
-        mv $saveFile $hiddenSaveFile
+        mv "$saveFile" "$hiddenSaveFile"
     fi
 }
 
 # Get last line number that the job had searched last executed
 function getLastLineNumber()
 {
-    local logFile=$1
+    local file=$1
     local saveFile=$2
     local lastLineNumber=0
     local tmpSaveFile=$saveFile
 
     local getFromSaveFile=0
     if [ $followFlag = 1 ]; then
-        if [[ -n "${followData["$logFile,lastLineNumber"]}" ]]; then
-            lastLineNumber=${followData["$logFile,lastLineNumber"]}
+        if [[ -n "${followData["$file,lastLineNumber"]}" ]]; then
+            lastLineNumber=${followData["$file,lastLineNumber"]}
         else
             # First time of --follow, will try to get from save file
             getFromSaveFile=1
@@ -520,20 +521,20 @@ function getLastLineNumber()
 
     if [ $getFromSaveFile = 1 ]; then
         if [ -n "$tmpSaveFile" ]; then
-            if [ -e $tmpSaveFile ]; then
-                lastLine=`tail -n 1 $tmpSaveFile`
+            if [ -e "$tmpSaveFile" ]; then
+                lastLine=`tail -n 1 "$tmpSaveFile"`
                 if [ -z "$lastLine" ]; then
                     tmpSaveName=${tmpSaveFile##*/}
                     tmpSavePath=${tmpSaveFile%/*}
                     tmpSaveFile="$tmpSavePath/.$tmpSaveName"
-                    if [ -e $tmpSaveFile ]; then
-                        lastLine=`tail -n 1 $tmpSaveFile`
+                    if [ -e "$tmpSaveFile" ]; then
+                        lastLine=`tail -n 1 "$tmpSaveFile"`
                     fi
                 fi
                 # echo -e "\033[32mLast Line: $lastLine\033[0m"
                 if [ -n "$lastLine" ]; then
                     lastLineReg="\# Last Line: ([0-9]+) "
-                    if [[ $lastLine =~ $lastLineReg ]]; then
+                    if [[ $lastLine =~ "$lastLineReg" ]]; then
                         lastLineNumber=${BASH_REMATCH[1]}
                     fi
                 fi
@@ -548,14 +549,14 @@ function getLastLineNumber()
 # Get total lines that the job had searched last executed
 function getLastDisplayTotalLines()
 {
-    local logFile=$1
+    local file=$1
     local saveFile=$2
     local lastLines=0
 
     local getFromSaveFile=0
     if [ $followFlag = 1 ]; then
-        if [[ -n "${followData["$logFile,displayLines"]}" ]]; then
-            lastLines=${followData["$logFile,displayLines"]}
+        if [[ -n "${followData["$file,displayLines"]}" ]]; then
+            lastLines=${followData["$file,displayLines"]}
         else
             # First time of --follow, will try to get from save file
             getFromSaveFile=1
@@ -566,7 +567,7 @@ function getLastDisplayTotalLines()
 
     if [ $getFromSaveFile = 1 ]; then
         if [[ -n "$saveFile" && -e $saveFile ]]; then 
-            lastLine=`tail -n 1 $saveFile`
+            lastLine=`tail -n 1 "$saveFile"`
             # echo -e "\033[32mLast Line: $lastLine\033[0m"
             if [ -n "$lastLine" ]; then
                 lastLineReg="Display Total Lines: ([0-9]+) "
@@ -585,32 +586,31 @@ function getLastDisplayTotalLines()
 # The line must match $matchReg user set and after the $startDatetime
 function displayFile()
 {
-    local logFile=$1
-    
-    isAllowedFileCheckers "$logFile"
+    local file="$1"
+    isAllowedFileCheckers "$file"
     local isNotAllowedFileFlag=`echo $?`
     if [ ! $isNotAllowedFileFlag -eq 0 ]; then
         # echo "Expired file!"
         return 1
     fi
 
-    echoMsg "\033[4;36m# Log File: $logFile\033[0m" $FLAG_NOT_FOLLOW
+    echoMsg "\033[4;36m# Log File: $file\033[0m" $FLAG_NOT_FOLLOW
 
     local saveFile=""
     if [ $isSaveLogs -eq 1 ]; then
-        saveFile=$(createSaveFile $logFile)
+        saveFile=$(createSaveFile "$file")
         echoMsg "\033[4;36m# Save File: $saveFile\033[0m" $FLAG_NOT_FOLLOW
     else
         saveFile=""
     fi
 
-    local lastLineNumber=$(getLastLineNumber $logFile "$saveFile")
+    local lastLineNumber=$(getLastLineNumber "$file" "$saveFile")
 
     local currentLineNumber=0
     local isNotAllowedLineFlag=1
     local noCheckLineOffset=0
     local noCheckLineNumber=0
-    displayTotalLines=$(getLastDisplayTotalLines $logFile "$saveFile")
+    displayTotalLines=$(getLastDisplayTotalLines "$file" "$saveFile")
     while read -r line
     do
         ((currentLineNumber++))
@@ -636,18 +636,18 @@ function displayFile()
         noCheckLineOffset=`echo $?`
         noCheckLineNumber=$((currentLineNumber+noCheckLineOffset))
 
-    done < $logFile
+    done < "$file"
 
-    displayDetails $logFile $currentLineNumber "$saveFile" $displayTotalLines
+    displayDetails "$file" $currentLineNumber "$saveFile" $displayTotalLines
 }
 
 # Display log files one by one
 function displayFiles()
 {
-    for logFile in $logFiles
+    while read -r file
     do
-        displayFile $logFile
-    done
+        displayFile "$file"
+    done <<< "$files"
 }
 
 # Delete the save path
@@ -682,13 +682,13 @@ function reset()
 
 # Save the log files data 
 # Format:
-#  followData["$logFile,lastLineNumber"]=$lastLineNumber
-#  followData["$logFile,displayLines"]=$displayLines
-#  followData["$logFile,datetime"]=$datetime
+#  followData["$file,lastLineNumber"]=$lastLineNumber
+#  followData["$file,displayLines"]=$displayLines
+#  followData["$file,datetime"]=$datetime
 declare -A followData
 # For easilly to know how many log files we have followed
 # Format:
-# followFiles["$logFile"]=$saveFile
+# followFiles["$file"]=$saveFile
 declare -A followFiles
 function setFollowData()
 {
@@ -704,23 +704,23 @@ function setFollowData()
 # Because we don't persist this if --follow
 function persistFollowData()
 {
-    local logFile=""
+    local file=""
     local saveFile=""
     local lastLineNumber=0
     local displayLines=0
     local datetime=""
 
-    for logFile in "${!followFiles[@]}"
+    for file in "${!followFiles[@]}"
     do
-        saveFile="${followFiles[$logFile]}"
+        saveFile="${followFiles[$file]}"
 
-        lastLineNumber=${followData["$logFile,lastLineNumber"]}
+        lastLineNumber=${followData["$file,lastLineNumber"]}
         if [[ -n "$lastLineNumber" ]]; then
-            displayLines=${followData["$logFile,displayLines"]}
-            datetime=${followData["$logFile,datetime"]}
-            # echo -e "\033[4;36m# Last Line: $lastLineNumber - Display Total Lines: $displayLines - $datetime - $logFile\033[0m"
+            displayLines=${followData["$file,displayLines"]}
+            datetime=${followData["$file,datetime"]}
+            # echo -e "\033[4;36m# Last Line: $lastLineNumber - Display Total Lines: $displayLines - $datetime - $file\033[0m"
 
-            persistDetailsToSaveFile $logFile "$saveFile" $lastLineNumber $displayLines "$datetime"
+            persistDetailsToSaveFile "$file" "$saveFile" $lastLineNumber $displayLines "$datetime"
         fi
     done
 }
@@ -740,22 +740,21 @@ function follow()
         do
             sleep $followInterval
 
-            logFiles=`$findCommandFollow`
-            logFilesArray=($logFiles)
-            logFilesCount=${#logFilesArray[*]}
+            files=`$findCommandFollow`
+            filesArray=($files)
+            filesCount=${#filesArray[*]}
 
-            if [ $logFilesCount -eq 0 ]; then
+            if [ $filesCount -eq 0 ]; then
                 # echo -e "\033[1;31m$followCount:No log file found!\033[0m"
                 continue
             fi
 
-            # echo -e "$followCount:Log Files Total Count: \033[1;32m$logFilesCount\033[0m"
+            # echo -e "$followCount:Log Files Total Count: \033[1;32m$filesCount\033[0m"
 
-            for logFile in $logFiles
+            while read -r file
             do
-                # echo "$logFile"
-                displayFile $logFile
-            done
+                displayFile "$file"
+            done <<< "$files"
 
             # ((followCount++))
         done
@@ -889,16 +888,16 @@ findCommand="find $path -name $name $findOpts"
 
 echo -e "\033[1;32mStart searching logs...\033[0m"
 echo -e "\033[1;32m> $findCommand\033[0m"
-logFiles=`$findCommand`
-logFilesArray=($logFiles)
-logFilesCount=${#logFilesArray[*]}
+files=`$findCommand`
+filesArray=($files)
+filesCount=${#filesArray[*]}
 
-if [ $logFilesCount -eq 0 ]; then
+if [ $filesCount -eq 0 ]; then
     echo -e "\033[1;31mNo log file found!\033[0m"
     if [ $followFlag = 0 ]; then exit 0; fi
 fi
 
-echo -e "Log Files Total Count: \033[1;32m$logFilesCount\033[0m"
+echo -e "Log Files Total Count: \033[1;32m$filesCount\033[0m"
 echo -e "> Search the logs write after \033[1;32m$startDatetime\033[0m"
 echo -e "> Search the lines of log files that match \033[1;32m$matchReg\033[0m"
 
