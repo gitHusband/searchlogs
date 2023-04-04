@@ -533,8 +533,8 @@ function getLastLineNumber()
                 fi
                 # echo -e "\033[32mLast Line: $lastLine\033[0m"
                 if [ -n "$lastLine" ]; then
-                    lastLineReg="\# Last Line: ([0-9]+) "
-                    if [[ $lastLine =~ "$lastLineReg" ]]; then
+                    lastLineReg="# Last Line: ([0-9]+) "
+                    if [[ $lastLine =~ $lastLineReg ]]; then
                         lastLineNumber=${BASH_REMATCH[1]}
                     fi
                 fi
