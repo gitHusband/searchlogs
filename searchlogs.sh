@@ -764,9 +764,9 @@ function follow()
 
 # Ctrl + C Stop the shell
 # If --follow, we must not exit immediately the shell and must add the log file details into save files before exited
-function trapINT()
+function trapPersistFollowData()
 {
-    echo "Exiting..."
+    echo -e "\nExiting..."
     echo -e "\033[93mPersisting the log file details into save files before exit\033[0m"
     echo -e "\033[93mPlease don't exit again, will exit it after persisting\033[0m"
     persistFollowData
@@ -902,7 +902,9 @@ echo -e "Log Files Total Count: \033[1;32m$filesCount\033[0m"
 echo -e "> Search the logs write after \033[1;32m$startDatetime\033[0m"
 echo -e "> Search the lines of log files that match \033[1;32m$matchReg\033[0m"
 
-if [ $followFlag = 1 ]; then trap trapINT SIGINT; fi
+if [ $followFlag = 1 ]; then
+    trap trapPersistFollowData SIGINT SIGTERM;
+fi
 
 displayFiles
 
