@@ -114,15 +114,11 @@ function defaultDateToTime()
 if [ $os = "mac" ]; then
     function fileDateToTime()
     {
-        local -n fileTimestampRef=$1
-        local fileDatetimeStr=$2
-        local fileDatetimeFormat=$3
+        fileDateComplete
 
-        fileDateComplete fileDatetimeStr fileDatetimeFormat
+        fileTimestamp=`date -j -f "$fileDatetimeFormat" "$fileDatetime" +%s` # Mac
 
-        fileTimestampRef=`date -j -f "$fileDatetimeFormat" "$fileDatetimeStr" +%s` # Mac
-
-        # echo "FILE: date -j -f "$fileDatetimeFormat" "$fileDatetimeStr" +%s ======> $fileTimestampRef"
+        # echo "FILE: date -j -f "$fileDatetimeFormat" "$fileDatetime" +%s ======> $fileTimestamp"
     }
 
     # Default file date complete
@@ -130,32 +126,23 @@ if [ $os = "mac" ]; then
     # Because `date` command use the current "%H:%M:%S" if you don't set it
     function fileDateComplete()
     {
-        local -n fileDatetimeStrRef=$1
-        local -n fileDatetimeFormatRef=$2
-
         # The end time of the date
-        fileDatetimeStrRef="$fileDatetimeStrRef 23:59:59"
-        fileDatetimeFormatRef="$fileDatetimeFormatRef %H:%M:%S"
+        fileDatetime="$fileDatetime 23:59:59"
+        fileDatetimeFormat="$fileDatetimeFormat %H:%M:%S"
 
-        # echo "Mac $fileDatetimeStrRef - $fileDatetimeFormatRef";
+        # echo "Mac $fileDatetime - $fileDatetimeFormat";
     }
 
     # Call this definer when you start to match a file date reg
     # Do use this function for now
     function fileDateCompleteDefiner()
     {
-        local fileDatetimeStr=$1
-        local fileDatetimeFormat=$2
-
         if [ $fileDatetimeFormat = "%Y-%m-%d" -o $fileDatetimeFormat = "%Y%m%d" ]; then
             function fileDateComplete()
             {
-                local -n fileDatetimeStrRef=$1
-                local -n fileDatetimeFormatRef=$2
-
                 # The end time of the date
-                fileDatetimeStrRef="$fileDatetimeStrRef 23:59:59"
-                fileDatetimeFormatRef="$fileDatetimeFormatRef %H:%M:%S"
+                fileDatetime="$fileDatetime 23:59:59"
+                fileDatetimeFormat="$fileDatetimeFormat %H:%M:%S"
             }
         else 
             # Do nothing
@@ -168,15 +155,11 @@ if [ $os = "mac" ]; then
 else
     function fileDateToTime()
     {
-        local -n fileTimestampRef=$1
-        local fileDatetimeStr=$2
-        local fileDatetimeFormat=$3
+        fileDateComplete
 
-        fileDateComplete fileDatetimeStr fileDatetimeFormat
+        fileTimestamp=`date -d "$fileDatetime" +%s` # Linux
 
-        fileTimestampRef=`date -d "$fileDatetimeStr" +%s` # Linux
-
-        # echo "FILE: date -d "$fileDatetimeStr" +%s ======> $fileTimestampRef"
+        # echo "FILE: date -d "$fileDatetime" +%s ======> $fileTimestamp"
     }
 
     # Default file date complete
@@ -184,20 +167,17 @@ else
     # Because `date` command do NOT support special date format, such as "%Y%m%d", must turn it to "%Y-%m-%d"
     function fileDateComplete()
     {
-        local -n fileDatetimeStrRef=$1
-        local -n fileDatetimeFormatRef=$2
-
-        if [ $fileDatetimeFormatRef = "%Y%m%d" ]; then
-            day=${fileDatetimeStrRef:$((${#fileDatetimeStrRef} - 2))}
-            month=${fileDatetimeStrRef:$((${#fileDatetimeStrRef} - 4)):2}
-            year=${fileDatetimeStrRef:0:$((${#fileDatetimeStrRef} - 4))}
-            fileDatetimeStrRef="$year-$month-$day"
+        if [ $fileDatetimeFormat = "%Y%m%d" ]; then
+            day=${fileDatetime:$((${#fileDatetime} - 2))}
+            month=${fileDatetime:$((${#fileDatetime} - 4)):2}
+            year=${fileDatetime:0:$((${#fileDatetime} - 4))}
+            fileDatetime="$year-$month-$day"
         fi
 
         # The end time of the date
-        fileDatetimeStrRef="$fileDatetimeStrRef 23:59:59"
+        fileDatetime="$fileDatetime 23:59:59"
 
-        # echo "Mac $fileDatetimeStrRef - $fileDatetimeFormatRef";
+        # echo "Linux $fileDatetime - $fileDatetimeFormat";
     }
 fi
 
@@ -206,24 +186,16 @@ fi
 if [ $os = "mac" ]; then
     function lineDateToTime()
     {
-        local -n lineTimestampRef=$1
-        local lineDatetimeStr=$2
-        local lineDatetimeFormat=$3
+        lineTimestamp=`date -j -f "$lineDatetimeFormat" "$lineDatetime" +%s` # Mac
 
-        lineTimestampRef=`date -j -f "$lineDatetimeFormat" "$lineDatetimeStr" +%s` # Mac
-
-        # echo "LINE: date -j -f "$lineDatetimeFormat" "$lineDatetimeStr" +%s ======> $lineTimestampRef"
+        # echo "LINE: date -j -f "$lineDatetimeFormat" "$lineDatetime" +%s ======> $lineTimestamp"
     }
 else
     function lineDateToTime()
     {
-        local -n lineTimestampRef=$1
-        local lineDatetimeStr=$2
-        local lineDatetimeFormat=$3
+        lineTimestamp=`date -d "$lineDatetime" +%s` # Linux
 
-        lineTimestampRef=`date -d "$lineDatetimeStr" +%s` # Linux
-
-        # echo "LINE: date -d "$lineDatetimeStr" +%s ======> $lineTimestampRef"
+        # echo "LINE: date -d "$lineDatetime" +%s ======> $lineTimestamp"
     }
 fi
 
@@ -245,11 +217,8 @@ function echoMsg()
 # Check if a file is allowed to dislpay
 function isAllowedFileChecker()
 {
-    local file=$1
-    local fileDatetimeReg=$2
-    local fileDatetimeFormat=$3
-    local fileDatetime=""
-    local fileTimestamp=0
+    fileDatetime=""
+    fileTimestamp=0
 
     # If empty fileDatetimeReg, then display all the files
     if [[ -z "$fileDatetimeReg" ]]; then return 0; fi
@@ -257,17 +226,11 @@ function isAllowedFileChecker()
     if [[ "$file" =~ $fileDatetimeReg ]]; then
         fileDatetime=${BASH_REMATCH[1]}
         
-        fileDateToTime fileTimestamp "$fileDatetime" "$fileDatetimeFormat"
-        # echo "In isAllowedFileChecker: $fileDatetimeReg - $fileDatetimeFormat"
-        # echo "In isAllowedFileChecker: $file - $fileTimestamp - $startTimestamp = $((fileTimestamp - startTimestamp))"
+        fileDateToTime
         if [ $fileTimestamp -ge $startTimestamp ]; then
-            # echo "fileDatetime($fileDatetime#$fileTimestamp) >= startDatetime($startDatetime#$startTimestamp)"
-
             # Display this file
             return 0
         else
-            # echo "fileDatetime($fileDatetime#$fileTimestamp) < startDatetime($startDatetime#$startTimestamp)"
-
             # Don't display this file
             return 2
         fi
@@ -283,9 +246,8 @@ function isAllowedFileCheckers()
     # Allowed if no regs
     if [[ $fileDatetimeRegsLength -eq 0 ]]; then return 0; fi
 
-    local file=$1
-    local fileDatetimeReg=""
-    local fileDatetimeFormat=""
+    fileDatetimeReg=""
+    fileDatetimeFormat=""
     local isNotAllowedFileFlag=1
 
     local fileDatetimeRegIndex=0
@@ -295,7 +257,7 @@ function isAllowedFileCheckers()
         ((fileDatetimeRegIndex++))
         fileDatetimeFormat="${fileDatetimeRegs[$fileDatetimeRegIndex]}"
         
-        isAllowedFileChecker "$file" "$fileDatetimeReg" "$fileDatetimeFormat"
+        isAllowedFileChecker
         isNotAllowedFileFlag=`echo $?`
         if [ $isNotAllowedFileFlag -eq 0 ]; then
             return 0
@@ -311,11 +273,8 @@ function isAllowedFileCheckers()
 # Check if a line is allowed to dislpay
 function isAllowedLineChecker()
 {
-    local line=$1
-    local lineDatetimeReg=$2
-    local lineDatetimeFormat=$3
-    local lineDatetime=""
-    local lineTimestamp=0
+    lineDatetime=""
+    lineTimestamp=0
 
     # If empty lineDatetimeReg, then display all the lines
     if [[ -z "$lineDatetimeReg" ]]; then return 0; fi
@@ -323,15 +282,11 @@ function isAllowedLineChecker()
     if [[ $line =~ $lineDatetimeReg ]]; then
         lineDatetime=${BASH_REMATCH[1]}
 
-        lineDateToTime lineTimestamp "$lineDatetime" "$lineDatetimeFormat"
+        lineDateToTime
         if [ $lineTimestamp -ge $startTimestamp ]; then
-            # echo "lineDatetime($lineDatetime#$lineTimestamp) >= startDatetime($startDatetime#$startTimestamp)"
-
             # Display this line
             return 0
         else
-            # echo "lineDatetime($lineDatetime#$lineTimestamp) < startDatetime($startDatetime#$startTimestamp)"
-
             # Don't display this line
             return 2
         fi
@@ -347,9 +302,8 @@ function isAllowedLineCheckers()
     # Allowed if no regs
     if [[ $lineDatetimeRegsLength -eq 0 ]]; then return 0; fi
 
-    local line=$1
-    local lineDatetimeReg=""
-    local lineDatetimeFormat=""
+    lineDatetimeReg=""
+    lineDatetimeFormat=""
     local isNotAllowedLineFlag=1
 
     local lineDatetimeRegIndex=0
@@ -358,7 +312,7 @@ function isAllowedLineCheckers()
         lineDatetimeReg="${lineDatetimeRegs[$lineDatetimeRegIndex]}"
         ((lineDatetimeRegIndex++))
         lineDatetimeFormat="${lineDatetimeRegs[$lineDatetimeRegIndex]}"
-        isAllowedLineChecker "$line" "$lineDatetimeReg" "$lineDatetimeFormat"
+        isAllowedLineChecker
         isNotAllowedLineFlag=`echo $?`
         if [ $isNotAllowedLineFlag -eq 0 ]; then
             return 0
@@ -401,10 +355,8 @@ displayTotalLines=0
 # Return the line number offset that will display without check
 function displayLine()
 {
-    local line=$1
-    local lineNumber=$2
-    local noCheckLineNumber=$3
-    local saveFile=$4
+    local lineNumber=$1
+    local noCheckLineNumber=$2
 
     local noCheckLineOffset=0
 
@@ -412,14 +364,14 @@ function displayLine()
     if [ $lineNumber -le $noCheckLineNumber ]; then
         ((displayTotalLines++))
         echo -e "\033[33m$line\033[0m"
-        if [[ -n "$saveFile" && -e $saveFile ]]; then echo "$line" >> "$saveFile"; fi
+        if [[ -n "$saveFile" && -e "$saveFile" ]]; then echo "$line" >> "$saveFile"; fi
         return $((noCheckLineNumber - lineNumber))
     fi
 
     if [[ $line =~ $matchReg ]]; then
         ((displayTotalLines++))
         echo -e "\033[32m$lineNumber:$line\033[0m"
-        if [[ -n "$saveFile" && -e $saveFile ]]; then echo "$lineNumber:$line" >> "$saveFile"; fi
+        if [[ -n "$saveFile" && -e "$saveFile" ]]; then echo "$lineNumber:$line" >> "$saveFile"; fi
         # noCheckLineOffset=0
         getLineOffset "$line"
         noCheckLineOffset=`echo $?`
@@ -433,10 +385,7 @@ function createSaveFile()
 {
     local file=$1
     local saveFile=${file/$pathWithoutEndSlash/$savePath}
-    # saveFile=${saveFile/.log/.search.log}
-    local saveFile=$saveFile$saveNameSuffix
-    # echo "1. $file"
-    # echo "2. $saveFile"
+    saveFile=$saveFile$saveNameSuffix
 
     # saveName=${saveFile##*/}
     local currentSavePath=${saveFile%/*}
@@ -456,10 +405,8 @@ function createSaveFile()
 # If save log, then save the "last line number"/"total lines"/"datetime" into save file
 function displayDetails()
 {
-    local file=$1
-    local lastLineNumber=$2
-    local saveFile=$3
-    local displayLines=$4
+    local lastLineNumber=$1
+    local displayLines=$2
 
     datetime=`date +"%Y-%m-%d %H:%M:%S"`
 
@@ -586,8 +533,7 @@ function getLastDisplayTotalLines()
 # The line must match $matchReg user set and after the $startDatetime
 function displayFile()
 {
-    local file="$1"
-    isAllowedFileCheckers "$file"
+    isAllowedFileCheckers
     local isNotAllowedFileFlag=`echo $?`
     if [ ! $isNotAllowedFileFlag -eq 0 ]; then
         # echo "Expired file!"
@@ -596,7 +542,7 @@ function displayFile()
 
     echoMsg "\033[4;36m# Log File: $file\033[0m" $FLAG_NOT_FOLLOW
 
-    local saveFile=""
+    saveFile=""
     if [ $isSaveLogs -eq 1 ]; then
         saveFile=$(createSaveFile "$file")
         echoMsg "\033[4;36m# Save File: $saveFile\033[0m" $FLAG_NOT_FOLLOW
@@ -623,22 +569,20 @@ function displayFile()
         # If a line is allowed to display, then all the lines after it is allowed to display
         if [ ! $isNotAllowedLineFlag -eq 0 ]; then
             # Check if the line is allowed to display
-            # line has space, so need to add ""
-            isAllowedLineCheckers "$line"
+            isAllowedLineCheckers
             isNotAllowedLineFlag=`echo $?`
-
             if [ ! $isNotAllowedLineFlag -eq 0 ]; then
                 continue
             fi
         fi
 
-        displayLine "$line" $currentLineNumber $noCheckLineNumber "$saveFile"
+        displayLine $currentLineNumber $noCheckLineNumber
         noCheckLineOffset=`echo $?`
         noCheckLineNumber=$((currentLineNumber+noCheckLineOffset))
 
     done < "$file"
 
-    displayDetails "$file" $currentLineNumber "$saveFile" $displayTotalLines
+    displayDetails $currentLineNumber $displayTotalLines
 }
 
 # Display log files one by one
@@ -646,7 +590,7 @@ function displayFiles()
 {
     while read -r file
     do
-        displayFile "$file"
+        displayFile
     done <<< "$files"
 }
 
@@ -755,7 +699,7 @@ function follow()
 
             while read -r file
             do
-                displayFile "$file"
+                displayFile
             done <<< "$files"
 
             # ((followCount++))

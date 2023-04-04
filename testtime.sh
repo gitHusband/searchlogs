@@ -42,24 +42,24 @@ source ./searchlogs.sh --export --start-datetime "2023-04-01 08:00:00"
 # }
 
 function testFileTime() {
-    local fileName="$1"
-    isAllowedFileCheckers "$fileName"
+    file="$1"
+    isAllowedFileCheckers
     isAllowedFileFlag=$(echo $?)
     if [ ! $isAllowedFileFlag -eq 0 ]; then
-        echo -e "\033[31m#$fileOptCount,$fileNameCount Error: Not Accepted file - \033[1;4m$fileName\033[0m"
+        echo -e "\033[31m#$fileOptCount,$fileCount Error: Not Accepted file - \033[1;4m$file\033[0m"
     else
-        echo -e "\033[32m#$fileOptCount,$fileNameCount Accepted file - \033[1;4m$fileName\033[0m"
+        echo -e "\033[32m#$fileOptCount,$fileCount Accepted file - \033[1;4m$file\033[0m"
     fi
 }
 
 function testLineTime() {
-    local line="$1"
-    isAllowedLineCheckers "$line"
+    line="$1"
+    isAllowedLineCheckers
     isAllowedLineFlag=$(echo $?)
     if [ ! $isAllowedLineFlag -eq 0 ]; then
-        echo -e "\033[31m*$lineOptCount,$lineNameCount Error: Not Accepted Line - \033[1;4m$line\033[0m"
+        echo -e "\033[31m*$lineOptCount,$lineCount Error: Not Accepted Line - \033[1;4m$line\033[0m"
     else
-        echo -e "\033[32m*$lineOptCount,$lineNameCount Accepted line - \033[1;4m$line\033[0m"
+        echo -e "\033[32m*$lineOptCount,$lineCount Accepted line - \033[1;4m$line\033[0m"
     fi
 }
 
@@ -81,9 +81,9 @@ logFiles=(
 )
 
 fileOptCount=1
-fileNameCount=1
+fileCount=1
 for fileDatetimeOpt in "${fileDatetimeOpts[@]}"; do
-    fileNameCount=1
+    fileCount=1
 
     # parseFileTimeOpt "$fileDatetimeOpt"
     IFS=',' read -ra fileDatetimeRegs <<< "$fileDatetimeOpt"
@@ -94,7 +94,7 @@ for fileDatetimeOpt in "${fileDatetimeOpts[@]}"; do
 
     for logFile in "${logFiles[@]}"; do
         testFileTime "$logFile"
-        ((fileNameCount++))
+        ((fileCount++))
     done
 
     ((fileOptCount++))
@@ -124,9 +124,9 @@ logLines=(
 )
 
 lineOptCount=1
-lineNameCount=1
+lineCount=1
 for lineDatetimeOpt in "${lineDatetimeOpts[@]}"; do
-    lineNameCount=1
+    lineCount=1
 
     # parseLinesTimeOpt "$lineDatetimeOpt"
     IFS=',' read -ra lineDatetimeRegs <<< "$lineDatetimeOpt"
@@ -137,7 +137,7 @@ for lineDatetimeOpt in "${lineDatetimeOpts[@]}"; do
 
     for logLine in "${logLines[@]}"; do
         testLineTime "$logLine"
-        ((lineNameCount++))
+        ((lineCount++))
     done
 
     ((lineOptCount++))
