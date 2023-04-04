@@ -411,8 +411,8 @@ function displayLine()
     # Display line without check if the line number is less than noCheckLineNumber
     if [ $lineNumber -le $noCheckLineNumber ]; then
         ((displayTotalLines++))
-        echo -e "\033[33m  $line\033[0m"
-        if [[ -n "$saveFile" && -e $saveFile ]]; then echo "  $line" >> "$saveFile"; fi
+        echo -e "\033[33m$line\033[0m"
+        if [[ -n "$saveFile" && -e $saveFile ]]; then echo "$line" >> "$saveFile"; fi
         return $((noCheckLineNumber - lineNumber))
     fi
 
@@ -611,7 +611,7 @@ function displayFile()
     local noCheckLineOffset=0
     local noCheckLineNumber=0
     displayTotalLines=$(getLastDisplayTotalLines "$file" "$saveFile")
-    while read -r line
+    while IFS=$'\n' read -r line
     do
         ((currentLineNumber++))
 
