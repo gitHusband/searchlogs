@@ -742,7 +742,8 @@ function follow()
             sleep $followInterval
 
             files=`$findCommandFollow`
-            filesArray=($files)
+            readarray -t filesArray <<<"$files"
+            # filesArray=($files)
             filesCount=${#filesArray[*]}
 
             if [ $filesCount -eq 0 ]; then
@@ -890,7 +891,7 @@ findCommand="find $path -name $name $findOpts"
 echo -e "\033[1;32mStart searching logs...\033[0m"
 echo -e "\033[1;32m> $findCommand\033[0m"
 files=`$findCommand`
-filesArray=($files)
+readarray -t filesArray <<<"$files"
 filesCount=${#filesArray[*]}
 
 if [ $filesCount -eq 0 ]; then
