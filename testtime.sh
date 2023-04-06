@@ -113,6 +113,8 @@ function testLineTime() {
     fi
 }
 
+source ./dynamic_definer.sh
+
 echo "=================================================================================================="
 echo ""
 ######## Test File #########
@@ -141,6 +143,8 @@ for fileDatetimeOpt in "${fileDatetimeOpts[@]}"; do
     IFS=',' read -ra fileDatetimeRegs <<< "$fileDatetimeOpt"
     fileDatetimeRegsLength=${#fileDatetimeRegs[@]}
 
+    fileDateCompleteDefiners
+
     echo -e "\033[1;36m#$fileOptCount fileDatetimeOpt: \033[0m$fileDatetimeOpt\033[0m"
     echo -e "\033[1;36m#$fileOptCount fileDatetimeRegs: \033[0m(Length:${#fileDatetimeRegs[@]}) - ${fileDatetimeRegs[@]}\033[0m"
 
@@ -153,7 +157,7 @@ for fileDatetimeOpt in "${fileDatetimeOpts[@]}"; do
     echo ""
 done
 ######## Test File #########
-# exit
+exit
 echo "=================================================================================================="
 echo ""
 
