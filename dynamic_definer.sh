@@ -29,7 +29,9 @@ if [ $os = "mac" ]; then
         dateFormatBase64=$(echo "$dateFormat" | base64)
         # funcSuffix=${dateFormatBase64%%\=*}
         funcSuffix=${dateFormatBase64//\=/_}
-        echo "@ $os - fileDateCompleteDefiner: $dateFormat - $dateFormatBase64 - $funcSuffix"
+        funcName=${type}DateComplete$funcSuffix
+        funcBody=""
+        echo "@ $os - ${type}DateCompleteDefiner($funcName): $dateFormat - $dateFormatBase64 - $funcSuffix"
 
         # return 0
 
@@ -43,13 +45,13 @@ if [ $os = "mac" ]; then
                 fileDateCompleteHandlers["$dateFormat"]=fileDateComplete1
                 ;;
             "%Y-%m-%d"|"%Y%m%d")
-                function fileDateComplete2()
-                {
+                funcBody="
                     # The end time of the date
-                    fileDatetime="$fileDatetime 23:59:59"
-                    fileDatetimeFormat="$fileDatetimeFormat %H:%M:%S"
-                }
-                fileDateCompleteHandlers["$dateFormat"]=fileDateComplete2
+                    ${type}Datetime=\"\$${type}Datetime 23:59:59\"
+                    ${type}DatetimeFormat=\"\$${type}DatetimeFormat %H:%M:%S\"
+                "
+                eval "${funcName}() { ${funcBody} }"
+                eval "${type}DateCompleteHandlers[\"\$dateFormat\"]=$funcName"
                 ;;
             *)
                 function fileDateComplete4()
@@ -114,7 +116,9 @@ else
         dateFormatBase64=$(echo "$dateFormat" | base64)
         # funcSuffix=${dateFormatBase64%%\=*}
         funcSuffix=${dateFormatBase64//\=/_}
-        echo "@ $os - fileDateCompleteDefiner: $dateFormat - $dateFormatBase64 - $funcSuffix"
+        funcName=${type}DateComplete$funcSuffix
+        funcBody=""
+        echo "@ $os - ${type}DateCompleteDefiner($funcName): $dateFormat - $dateFormatBase64 - $funcSuffix"
 
         # return 0
 
@@ -129,19 +133,20 @@ else
                 fileDateCompleteHandlers["$dateFormat"]=fileDateComplete1
                 ;;
             "%Y-%m-%d")
-                function fileDateComplete2()
-                {
-                    day=${fileDatetime:0-2}
-                    month=${fileDatetime:5:2}
-                    year=${fileDatetime:0:4}
-                    fileDatetime="$year-$month-$day"
+                funcBody="
+                    day=\${${type}Datetime:0-2}
+                    month=\${${type}Datetime:5:2}
+                    year=\${${type}Datetime:0:4}
+                    ${type}Datetime=\"\$year-\$month-\$day\"
 
                     # The end time of the date
-                    fileDatetime="$fileDatetime 23:59:59"
+                    ${type}Datetime=\"\$${type}Datetime 23:59:59\"
 
-                    echo "@ $os - $fileDatetime - $fileDatetimeFormat";
-                }
-                fileDateCompleteHandlers["$dateFormat"]=fileDateComplete2
+                    echo \"@ \$os - \$${type}Datetime - \$${type}DatetimeFormat\";
+                "
+
+                eval "${funcName}() { ${funcBody} }"
+                eval "${type}DateCompleteHandlers[\"\$dateFormat\"]=$funcName"
                 ;;
             "%Y%m%d")
                 function fileDateComplete3()
