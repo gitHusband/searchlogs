@@ -3,43 +3,93 @@
 
 source ./searchlogs.sh --export --start-datetime "2023-04-01 08:00:00"
 
-# function parseFileTimeOpt() {
-#     local optArray=()
+declare -A datetimeOptLength=(
+    ["%Y"]=4
+    ["%m"]=2
+    ["%d"]=2
+    ["%H"]=2
+    ["%M"]=2
+    ["%S"]=2
+)
+declare -A datetimeCompletion=(
+    ["%Y"]="2023"
+    ["%m"]="04"
+    ["%d"]="01"
+    ["%H"]="23"
+    ["%M"]="59"
+    ["%S"]="59"
+)
+function fileDateComplete()
+{
+    # Todo: Complete the datetime.
+    # Here are the global variables you need
+    # fileDatetime - The datetime matched by file datetime reg
+    # fileDatetimeFormat - The current file datetime format when traversing ile-time-reg
+    # fileDatetimeReg - The current file datetime reg when traversing ile-time-reg
 
-#     if [[ -z "$1" ]]; then
-#         fileDatetimeReg=""
-#         fileDatetimeFormat=""
-#         return 0
-#     fi
+    datetimeCompletion["%Y"]="2023"
+    datetimeCompletion["%m"]="04"
+    datetimeCompletion["%d"]="01"
+    datetimeCompletion["%H"]="23"
+    datetimeCompletion["%M"]="59"
+    datetimeCompletion["%S"]="59"
 
-#     IFS=',' read -ra optArray <<<"$1"
+    while IFS= read -r -d "" -n 1 c; do
+        case $c in
+            %)
+                continue
+                ;;
+            Y|m|d|H|M|S)
+                datetimeCompletion["%$c"]=${fileDatetime:0:${datetimeOptLength["%$c"]}}
+                fileDatetime=${fileDatetime:${datetimeOptLength["%$c"]}}
+                ;;
+            *)
+                fileDatetime=${fileDatetime:1}}
+        esac
+    done < <(printf '%s' "$fileDatetimeFormat")
 
-#     if [ ${optArray[0]+isset} ]; then
-#         fileDatetimeReg="${optArray[0]}"
-#     fi
-#     if [ ${optArray[1]+isset} ]; then
-#         fileDatetimeFormat="${optArray[1]}"
-#     fi
-# }
+    fileDatetimeFormat="%Y-%m-%d %H:%M:%S"
+    fileDatetime="${datetimeCompletion[%Y]}-${datetimeCompletion[%m]}-${datetimeCompletion[%d]} ${datetimeCompletion[%H]}:${datetimeCompletion[%M]}:${datetimeCompletion[%S]}"
 
-# function parseLineTimeOpt() {
-#     local optArray=()
+    echo "# Auto datetime complete: $fileDatetimeFormat - $fileDatetime"
+}
 
-#     if [[ -z "$1" ]]; then
-#         lineDatetimeReg=""
-#         lineDatetimeFormat=""
-#         return 0
-#     fi
+function lineDateComplete()
+{
+    # Todo: Complete the datetime.
+    # Here are the global variables you need
+    # lineDatetime - The datetime matched by line datetime reg
+    # lineDatetimeFormat - The current line datetime format when traversing ile-time-reg
+    # lineDatetimeReg - The current line datetime reg when traversing ile-time-reg
 
-#     IFS=',' read -ra optArray <<<"$1"
+    datetimeCompletion["%Y"]="2023"
+    datetimeCompletion["%m"]="04"
+    datetimeCompletion["%d"]="01"
+    datetimeCompletion["%H"]="23"
+    datetimeCompletion["%M"]="59"
+    datetimeCompletion["%S"]="59"
 
-#     if [ ${optArray[0]+isset} ]; then
-#         lineDatetimeReg="${optArray[0]}"
-#     fi
-#     if [ ${optArray[1]+isset} ]; then
-#         lineDatetimeFormat="${optArray[1]}"
-#     fi
-# }
+    while IFS= read -r -d "" -n 1 c; do
+        case $c in
+            %)
+                continue
+                ;;
+            Y|m|d|H|M|S)
+                datetimeCompletion["%$c"]=${lineDatetime:0:${datetimeOptLength["%$c"]}}
+                lineDatetime=${lineDatetime:${datetimeOptLength["%$c"]}}
+                ;;
+            *)
+                lineDatetime=${lineDatetime:1}}
+        esac
+    done < <(printf '%s' "$lineDatetimeFormat")
+
+    lineDatetimeFormat="%Y-%m-%d %H:%M:%S"
+    lineDatetime="${datetimeCompletion[%Y]}-${datetimeCompletion[%m]}-${datetimeCompletion[%d]} ${datetimeCompletion[%H]}:${datetimeCompletion[%M]}:${datetimeCompletion[%S]}"
+
+    echo "# Auto datetime complete: $lineDatetimeFormat - $lineDatetime"
+}
+# eval file"$(declare -f DateComplete)"
+# eval line"$(declare -f DateComplete)"
 
 function testFileTime() {
     file="$1"
@@ -71,6 +121,7 @@ fileDatetimeOpts=(
     "^.*/.*([0-9]{4}-[0-9]{2}-[0-9]{2}),%Y-%m-%d"
     "([0-9]{4}[0-9]{2}[0-9]{2}),%Y%m%d"
     "([0-9]{4}_[0-9]{2}_[0-9]{2}),%Y_%m_%d"
+    "([0-9]{4}_[0-9]{2}_[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}),%Y_%m_%d %H:%M:%S"
 )
 
 logFiles=(
@@ -78,6 +129,7 @@ logFiles=(
     "/path/test_2023-04-01.log"
     "/path/test_2023_04_01.log"
     "/path/test_20230402.log"
+    "/path/test_2023_04_01 10:00:01.log"
 )
 
 fileOptCount=1
