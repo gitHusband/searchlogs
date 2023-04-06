@@ -153,10 +153,8 @@ $ ./searchlogs.sh --line-offset-reg "Undefined array key,3"
 ```bash
 $ ./searchlogs.sh --file-time-reg "([0-9]{4}_[0-9]{2}_[0-9]{2}),%Y_%m_%d"
 ```
-- **注意，以上例子仅支持 Mac, Linux 不支持特殊格式**
-- Linux 特殊格式的支持正在开发中。。。
 
-又如，不排除任何文件
+又如，不通过时间排除任何文件
 ```bash
 $ ./searchlogs.sh --file-time-reg ""
 ```
@@ -175,10 +173,8 @@ $ ./searchlogs.sh --file-time-reg ""
 ```bash
 $ ./searchlogs.sh --line-time-reg "([0-9]{4}_[0-9]{2}_[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}),%Y_%m_%d %H:%M:%S"
 ```
-- **注意，以上例子仅支持 Mac, Linux 不支持特殊格式**
-- Linux 特殊格式的支持正在开发中。。。
 
-又如，不排除任何行
+又如，不通过时间排除任何行
 ```bash
 $ ./searchlogs.sh --line-time-reg ""
 ```

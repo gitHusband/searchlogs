@@ -109,95 +109,308 @@ function defaultDateToTime()
     echo $timestamp
 }
 
-# Convert file date to time
-# If you have special date format which `date` command can not convert, you can overloaded this function by yourself
+# Here is an example of how to auto convert date to timestamp
+# generateAutoDateCompleteFuncBody is depend on this
+function autoFileDateCompleteExample()
+{
+    # Todo: Complete the datetime.
+    # Here are the global variables you need
+    # fileDatetime - The datetime matched by file datetime reg
+    # fileDatetimeFormat - The current file datetime format when traversing ile-time-reg
+    # fileDatetimeReg - The current file datetime reg when traversing ile-time-reg
+
+    datetimeCompletion["%Y"]="2023"
+    datetimeCompletion["%m"]="04"
+    datetimeCompletion["%d"]="01"
+    datetimeCompletion["%H"]="23"
+    datetimeCompletion["%M"]="59"
+    datetimeCompletion["%S"]="59"
+
+    while IFS= read -r -d "" -n 1 c; do
+        case $c in
+            %)
+                continue
+                ;;
+            Y|m|d|H|M|S)
+                datetimeCompletion["%$c"]=${fileDatetime:0:${datetimeOptLength["%$c"]}}
+                fileDatetime=${fileDatetime:${datetimeOptLength["%$c"]}}
+                ;;
+            *)
+                fileDatetime=${fileDatetime:1}}
+        esac
+    done < <(printf '%s' "$fileDatetimeFormat")
+
+    fileDatetimeFormat="%Y-%m-%d %H:%M:%S"
+    fileDatetime="${datetimeCompletion[%Y]}-${datetimeCompletion[%m]}-${datetimeCompletion[%d]} ${datetimeCompletion[%H]}:${datetimeCompletion[%M]}:${datetimeCompletion[%S]}"
+
+    # echo "@ Auto datetime complete: $fileDatetimeFormat - $fileDatetime"
+}
+
+# Generate the body of a function which can auto convert date to timestamp for file or line
+# Example: see function autoFileDateCompleteExample
+function generateAutoDateCompleteFuncBody()
+{
+    local type=$1
+
+    local funcBody="
+        # Todo: Complete the datetime.
+        # Here are the global variables you need
+        # fileDatetime - The datetime matched by file datetime reg
+        # fileDatetimeFormat - The current file datetime format when traversing ile-time-reg
+        # fileDatetimeReg - The current file datetime reg when traversing ile-time-reg
+
+        datetimeCompletion['%Y']='2023'
+        datetimeCompletion['%m']='04'
+        datetimeCompletion['%d']='01'
+        datetimeCompletion['%H']='23'
+        datetimeCompletion['%M']='59'
+        datetimeCompletion['%S']='59'
+
+        while IFS= read -r -d '' -n 1 c; do
+            case \$c in
+                %)
+                    continue
+                    ;;
+                Y|m|d|H|M|S)
+                    datetimeCompletion[\"%\$c\"]=\${${type}Datetime:0:\${datetimeOptLength[\"%\$c\"]}}
+                    ${type}Datetime=\${${type}Datetime:\${datetimeOptLength[\"%\$c\"]}}
+                    ;;
+                *)
+                    ${type}Datetime=\${${type}Datetime:1}}
+            esac
+        done < <(printf '%s' \"\$${type}DatetimeFormat\")
+
+        ${type}DatetimeFormat=\"%Y-%m-%d %H:%M:%S\"
+        ${type}Datetime=\"\${datetimeCompletion[%Y]}-\${datetimeCompletion[%m]}-\${datetimeCompletion[%d]} \${datetimeCompletion[%H]}:\${datetimeCompletion[%M]}:\${datetimeCompletion[%S]}\"
+
+        # echo \"@ Auto datetime complete: \$${type}DatetimeFormat - \$${type}Datetime\"
+    "
+
+    echo "$funcBody"
+}
+
+declare -A datetimeOptLength=(
+    ["%Y"]=4
+    ["%m"]=2
+    ["%d"]=2
+    ["%H"]=2
+    ["%M"]=2
+    ["%S"]=2
+)
+
+declare -A datetimeCompletion=(
+    ["%Y"]="2023"
+    ["%m"]="04"
+    ["%d"]="01"
+    ["%H"]="23"
+    ["%M"]="59"
+    ["%S"]="59"
+)
+
+declare -A fileDateCompleteHandlers
+declare -A lineDateCompleteHandlers
+
+# Convert file/line date to time
+# If you have special date format which `date` command can not convert, you can overloaded the datetimeComplete function by yourself
 if [ $os = "mac" ]; then
+
     function fileDateToTime()
     {
-        fileDateComplete
+        # echo "@ fileDateToTime($os): $fileDatetimeFormat - $fileDatetime"
+
+        # Call file date complete function
+        ${fileDateCompleteHandlers["$fileDatetimeFormat"]}
 
         fileTimestamp=`date -j -f "$fileDatetimeFormat" "$fileDatetime" +%s` # Mac
 
         # echo "FILE: date -j -f "$fileDatetimeFormat" "$fileDatetime" +%s ======> $fileTimestamp"
     }
 
-    # Default file date complete
-    # Why need date complete in Mac?
-    # Because `date` command use the current "%H:%M:%S" if you don't set it
-    function fileDateComplete()
+    function lineDateToTime()
     {
-        # The end time of the date
-        fileDatetime="$fileDatetime 23:59:59"
-        fileDatetimeFormat="$fileDatetimeFormat %H:%M:%S"
+        # echo "@ lineDateToTime($os): $lineDatetimeFormat - $lineDatetime"
 
-        # echo "Mac $fileDatetime - $fileDatetimeFormat";
+        # Call line date complete function
+        ${lineDateCompleteHandlers["$lineDatetimeFormat"]}
+
+        lineTimestamp=`date -j -f "$lineDatetimeFormat" "$lineDatetime" +%s` # Mac
+
+        # echo "LINE: date -j -f "$lineDatetimeFormat" "$lineDatetime" +%s ======> $lineTimestamp"
     }
 
-    # Call this definer when you start to match a file date reg
-    # Do use this function for now
-    function fileDateCompleteDefiner()
+    # Call this definer after setting file/line time reg(--file-time-reg/--line-time-reg)
+    # Define file/line date complete function
+    # Why need date complete function in Mac?
+    # Because Mac `date` command wull auto set the time "%H:%M:%S" to the current time if don't set this time format
+    # We need to set "%H:%M:%S" to "23:59:59", not current time if don't set "%H:%M:%S"
+    function dateCompleteDefiner()
     {
-        if [ $fileDatetimeFormat = "%Y-%m-%d" -o $fileDatetimeFormat = "%Y%m%d" ]; then
-            function fileDateComplete()
-            {
-                # The end time of the date
-                fileDatetime="$fileDatetime 23:59:59"
-                fileDatetimeFormat="$fileDatetimeFormat %H:%M:%S"
-            }
-        else 
-            # Do nothing
-            function fileDateComplete()
-            {
-                return 0
-            }
-        fi
+        local dateFormat=$1
+        # file or line
+        local type=$2
+
+        dateFormatBase64=$(echo "$dateFormat" | base64)
+        # funcSuffix=${dateFormatBase64%%\=*}
+        funcSuffix=${dateFormatBase64//\=/_}
+        funcName=${type}DateComplete$funcSuffix
+        funcBody=""
+        # echo "@ ${type}dateCompleteDefiner($os) - funcName($funcName) - $dateFormat: $dateFormatBase64 - $funcSuffix"
+
+        case $dateFormat in
+            "%Y-%m-%d %H:%M:%S"|"%Y%m%d %H:%M:%S"|"%Y%m%d%H%M%S"|"%Y%m%d_%H:%M:%S")
+                # Do nothing
+                funcBody="
+                    return 0
+                "
+                ;;
+            "%Y-%m-%d"|"%Y%m%d"|"%d%m%Y"|"%d/%m/%Y"|"%m/%d/%Y")
+                funcBody="
+                    # The end time of the date
+                    ${type}Datetime=\"\$${type}Datetime 23:59:59\"
+                    ${type}DatetimeFormat=\"\$${type}DatetimeFormat %H:%M:%S\"
+                "
+                ;;
+            *)
+                funcBody=$(generateAutoDateCompleteFuncBody "$type")
+        esac
     }
+
 else
+
     function fileDateToTime()
     {
-        fileDateComplete
+        # echo "@ fileDateToTime($os): $fileDatetimeFormat - $fileDatetime"
+
+        # Call file date complete function
+        ${fileDateCompleteHandlers["$fileDatetimeFormat"]}
 
         fileTimestamp=`date -d "$fileDatetime" +%s` # Linux
 
         # echo "FILE: date -d "$fileDatetime" +%s ======> $fileTimestamp"
     }
 
-    # Default file date complete
-    # Why need date complete in Linux?
-    # Because `date` command do NOT support special date format, such as "%Y%m%d", must turn it to "%Y-%m-%d"
-    function fileDateComplete()
-    {
-        if [ $fileDatetimeFormat = "%Y%m%d" ]; then
-            day=${fileDatetime:$((${#fileDatetime} - 2))}
-            month=${fileDatetime:$((${#fileDatetime} - 4)):2}
-            year=${fileDatetime:0:$((${#fileDatetime} - 4))}
-            fileDatetime="$year-$month-$day"
-        fi
-
-        # The end time of the date
-        fileDatetime="$fileDatetime 23:59:59"
-
-        # echo "Linux $fileDatetime - $fileDatetimeFormat";
-    }
-fi
-
-# Convert line date to time
-# If you have special date format which `date` command can not convert, you can overloaded this function by yourself
-if [ $os = "mac" ]; then
     function lineDateToTime()
     {
-        lineTimestamp=`date -j -f "$lineDatetimeFormat" "$lineDatetime" +%s` # Mac
+        # echo "@ lineDateToTime($os): $lineDatetimeFormat - $lineDatetime"
 
-        # echo "LINE: date -j -f "$lineDatetimeFormat" "$lineDatetime" +%s ======> $lineTimestamp"
-    }
-else
-    function lineDateToTime()
-    {
+        # Call line date complete function
+        ${lineDateCompleteHandlers["$lineDatetimeFormat"]}
+
         lineTimestamp=`date -d "$lineDatetime" +%s` # Linux
 
         # echo "LINE: date -d "$lineDatetime" +%s ======> $lineTimestamp"
     }
+
+    # Call this definer after setting file/line time reg(--file-time-reg/--line-time-reg)
+    # Define file/line date complete function
+    # Why need date complete function in Linux?
+    # Because Linux `date` command do NOT support special date format, such as "%Y%m%d", must turn it to "%Y-%m-%d"
+    function dateCompleteDefiner()
+    {
+        local dateFormat=$1
+        # file or line
+        local type=$2
+
+        dateFormatBase64=$(echo "$dateFormat" | base64)
+        # funcSuffix=${dateFormatBase64%%\=*}
+        funcSuffix=${dateFormatBase64//\=/_}
+        funcName=${type}DateComplete$funcSuffix
+        funcBody=""
+        # echo "@ ${type}dateCompleteDefiner($os) - funcName($funcName) - $dateFormat: $dateFormatBase64 - $funcSuffix"
+
+        case $dateFormat in
+            "%Y-%m-%d %H:%M:%S")
+                # Do nothing
+                funcBody="
+                    return 0
+                "
+                ;;
+            "%Y-%m-%d"|"%Y/%m/%d")
+                funcBody="
+                    day=\${${type}Datetime:0-2}
+                    month=\${${type}Datetime:5:2}
+                    year=\${${type}Datetime:0:4}
+                    ${type}Datetime=\"\$year-\$month-\$day\"
+
+                    # The end time of the date
+                    ${type}Datetime=\"\$${type}Datetime 23:59:59\"
+
+                    # echo \"@ ${type}DateComplete(\$os): \$${type}Datetime - \$${type}DatetimeFormat\";
+                "
+                ;;
+            "%Y%m%d")
+                funcBody="
+                    day=\${${type}Datetime:0-2}
+                    month=\${${type}Datetime:4:2}
+                    year=\${${type}Datetime:0:4}
+                    ${type}Datetime=\"\$year-\$month-\$day\"
+
+                    # The end time of the date
+                    ${type}Datetime=\"\$${type}Datetime 23:59:59\"
+
+                    # echo \"@ ${type}DateComplete(\$os): \$${type}Datetime - \$${type}DatetimeFormat\";
+                "
+                ;;
+            *)
+                funcBody=$(generateAutoDateCompleteFuncBody "$type")
+        esac
+
+        if [ -n "$funcBody" ]; then
+            eval "${funcName}() { ${funcBody} }"
+            eval "${type}DateCompleteHandlers[\"\$dateFormat\"]=$funcName"
+        fi
+    }
 fi
+
+# Define file date to time function for each datetime format which set by --file-time-reg
+function fileDateCompleteDefiners()
+{
+    # Don't have to define date complete function if no regs
+    if [[ $fileDatetimeRegsLength -eq 0 ]]; then return 0; fi
+
+    fileDatetimeReg=""
+    fileDatetimeFormat=""
+
+    local fileDatetimeRegIndex=0
+    while ((fileDatetimeRegIndex < $fileDatetimeRegsLength))
+    do
+        fileDatetimeReg="${fileDatetimeRegs[$fileDatetimeRegIndex]}"
+        ((fileDatetimeRegIndex++))
+        fileDatetimeFormat="${fileDatetimeRegs[$fileDatetimeRegIndex]}"
+        
+        # Define a handler of how to convert date string to timestamp
+        dateCompleteDefiner "$fileDatetimeFormat" "file"
+
+        ((fileDatetimeRegIndex++))
+    done
+
+    return 1
+}
+
+# Define line date to time function for each datetime format which set by --line-time-reg
+function lineDateCompleteDefiners()
+{
+    # Don't have to define date complete function if no regs
+    if [[ $lineDatetimeRegsLength -eq 0 ]]; then return 0; fi
+
+    lineDatetimeReg=""
+    lineDatetimeFormat=""
+
+    local lineDatetimeRegIndex=0
+    while ((lineDatetimeRegIndex < $lineDatetimeRegsLength))
+    do
+        lineDatetimeReg="${lineDatetimeRegs[$lineDatetimeRegIndex]}"
+        ((lineDatetimeRegIndex++))
+        lineDatetimeFormat="${lineDatetimeRegs[$lineDatetimeRegIndex]}"
+        
+        # Define a handler of how to convert date string to timestamp
+        dateCompleteDefiner "$lineDatetimeFormat" "line"
+
+        ((lineDatetimeRegIndex++))
+    done
+
+    return 1
+}
 
 # flag:
 # - 0: Not follow flag
@@ -827,6 +1040,11 @@ if [[ $isClean -eq 1 ]]; then clean; fi
 
 # Only delete save files
 if [[ $isReset -eq 1 ]]; then reset; fi
+
+# Define file date to time function for each datetime format which set by --file-time-reg
+fileDateCompleteDefiners
+# Define line date to time function for each datetime format which set by --line-time-reg
+lineDateCompleteDefiners
 
 pathWithoutEndSlash=${path%/}
 
