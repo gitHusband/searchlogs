@@ -3,94 +3,6 @@
 
 source ./searchlogs.sh --export --start-datetime "2023-04-01 08:00:00"
 
-declare -A datetimeOptLength=(
-    ["%Y"]=4
-    ["%m"]=2
-    ["%d"]=2
-    ["%H"]=2
-    ["%M"]=2
-    ["%S"]=2
-)
-declare -A datetimeCompletion=(
-    ["%Y"]="2023"
-    ["%m"]="04"
-    ["%d"]="01"
-    ["%H"]="23"
-    ["%M"]="59"
-    ["%S"]="59"
-)
-function fileDateComplete()
-{
-    # Todo: Complete the datetime.
-    # Here are the global variables you need
-    # fileDatetime - The datetime matched by file datetime reg
-    # fileDatetimeFormat - The current file datetime format when traversing ile-time-reg
-    # fileDatetimeReg - The current file datetime reg when traversing ile-time-reg
-
-    datetimeCompletion["%Y"]="2023"
-    datetimeCompletion["%m"]="04"
-    datetimeCompletion["%d"]="01"
-    datetimeCompletion["%H"]="23"
-    datetimeCompletion["%M"]="59"
-    datetimeCompletion["%S"]="59"
-
-    while IFS= read -r -d "" -n 1 c; do
-        case $c in
-            %)
-                continue
-                ;;
-            Y|m|d|H|M|S)
-                datetimeCompletion["%$c"]=${fileDatetime:0:${datetimeOptLength["%$c"]}}
-                fileDatetime=${fileDatetime:${datetimeOptLength["%$c"]}}
-                ;;
-            *)
-                fileDatetime=${fileDatetime:1}}
-        esac
-    done < <(printf '%s' "$fileDatetimeFormat")
-
-    fileDatetimeFormat="%Y-%m-%d %H:%M:%S"
-    fileDatetime="${datetimeCompletion[%Y]}-${datetimeCompletion[%m]}-${datetimeCompletion[%d]} ${datetimeCompletion[%H]}:${datetimeCompletion[%M]}:${datetimeCompletion[%S]}"
-
-    echo "# Auto datetime complete: $fileDatetimeFormat - $fileDatetime"
-}
-
-function lineDateComplete()
-{
-    # Todo: Complete the datetime.
-    # Here are the global variables you need
-    # lineDatetime - The datetime matched by line datetime reg
-    # lineDatetimeFormat - The current line datetime format when traversing ile-time-reg
-    # lineDatetimeReg - The current line datetime reg when traversing ile-time-reg
-
-    datetimeCompletion["%Y"]="2023"
-    datetimeCompletion["%m"]="04"
-    datetimeCompletion["%d"]="01"
-    datetimeCompletion["%H"]="23"
-    datetimeCompletion["%M"]="59"
-    datetimeCompletion["%S"]="59"
-
-    while IFS= read -r -d "" -n 1 c; do
-        case $c in
-            %)
-                continue
-                ;;
-            Y|m|d|H|M|S)
-                datetimeCompletion["%$c"]=${lineDatetime:0:${datetimeOptLength["%$c"]}}
-                lineDatetime=${lineDatetime:${datetimeOptLength["%$c"]}}
-                ;;
-            *)
-                lineDatetime=${lineDatetime:1}}
-        esac
-    done < <(printf '%s' "$lineDatetimeFormat")
-
-    lineDatetimeFormat="%Y-%m-%d %H:%M:%S"
-    lineDatetime="${datetimeCompletion[%Y]}-${datetimeCompletion[%m]}-${datetimeCompletion[%d]} ${datetimeCompletion[%H]}:${datetimeCompletion[%M]}:${datetimeCompletion[%S]}"
-
-    echo "# Auto datetime complete: $lineDatetimeFormat - $lineDatetime"
-}
-# eval file"$(declare -f DateComplete)"
-# eval line"$(declare -f DateComplete)"
-
 function testFileTime() {
     file="$1"
     isAllowedFileCheckers
@@ -142,11 +54,10 @@ for fileDatetimeOpt in "${fileDatetimeOpts[@]}"; do
     # parseFileTimeOpt "$fileDatetimeOpt"
     IFS=',' read -ra fileDatetimeRegs <<< "$fileDatetimeOpt"
     fileDatetimeRegsLength=${#fileDatetimeRegs[@]}
-
-    fileDateCompleteDefiners
-
     echo -e "\033[1;36m#$fileOptCount fileDatetimeOpt: \033[0m$fileDatetimeOpt\033[0m"
     echo -e "\033[1;36m#$fileOptCount fileDatetimeRegs: \033[0m(Length:${#fileDatetimeRegs[@]}) - ${fileDatetimeRegs[@]}\033[0m"
+
+    fileDateCompleteDefiners
 
     for logFile in "${logFiles[@]}"; do
         testFileTime "$logFile"
@@ -157,7 +68,7 @@ for fileDatetimeOpt in "${fileDatetimeOpts[@]}"; do
     echo ""
 done
 ######## Test File #########
-exit
+# exit
 echo "=================================================================================================="
 echo ""
 
@@ -187,9 +98,10 @@ for lineDatetimeOpt in "${lineDatetimeOpts[@]}"; do
     # parseLinesTimeOpt "$lineDatetimeOpt"
     IFS=',' read -ra lineDatetimeRegs <<< "$lineDatetimeOpt"
     lineDatetimeRegsLength=${#lineDatetimeRegs[@]}
-
     echo -e "\033[1;36m*$lineOptCount lineDatetimeOpt: \033[0m$lineDatetimeOpt\033[0m"
     echo -e "\033[1;36m*$lineOptCount lineDatetimeRegs: \033[0m(Length:${#lineDatetimeRegs[@]}) - ${lineDatetimeRegs[@]}\033[0m"
+
+    lineDateCompleteDefiners
 
     for logLine in "${logLines[@]}"; do
         testLineTime "$logLine"
