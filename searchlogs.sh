@@ -273,6 +273,11 @@ if [ $os = "mac" ]; then
             *)
                 funcBody=$(generateAutoDateCompleteFuncBody "$type")
         esac
+
+        if [ -n "$funcBody" ]; then
+            eval "${funcName}() { ${funcBody} }"
+            eval "${type}DateCompleteHandlers[\"\$dateFormat\"]=$funcName"
+        fi
     }
 
 else

@@ -160,11 +160,18 @@ if [ $os = "mac" ]; then
                     # The end time of the date
                     ${type}Datetime=\"\$${type}Datetime 23:59:59\"
                     ${type}DatetimeFormat=\"\$${type}DatetimeFormat %H:%M:%S\"
+
+                    # echo \"@ ${type}DateComplete(\$os): \$${type}Datetime - \$${type}DatetimeFormat\";
                 "
                 ;;
             *)
                 funcBody=$(generateAutoDateCompleteFuncBody "$type")
         esac
+
+        if [ -n "$funcBody" ]; then
+            eval "${funcName}() { ${funcBody} }"
+            eval "${type}DateCompleteHandlers[\"\$dateFormat\"]=$funcName"
+        fi
     }
 
 else
