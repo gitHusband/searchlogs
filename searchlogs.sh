@@ -109,6 +109,20 @@ function defaultDateToTime()
     echo $timestamp
 }
 
+function convertSeconds() {
+    ((h=${1}/3600))
+    ((m=(${1}%3600)/60))
+    ((s=${1}%60))
+    printf "%02d:%02d:%02d\n" $h $m $s
+}
+
+function convertSecondsFromDate() {
+    local startTime=$(defaultDateToTime "$1")
+    local endTime=$(defaultDateToTime "$2")
+    local diffTime=$((endTime - startTime))
+    echo $(convertSeconds $diffTime)
+}
+
 # Here is an example of how to auto convert date to timestamp
 # generateAutoDateCompleteFuncBody is depend on this
 function autoFileDateCompleteExample()
@@ -568,6 +582,7 @@ function getLineOffset()
 }
 
 displayTotalLines=0
+currentLineNumber=0
 # Display a line
 # If save log, then save the line into save file
 # Return the line number offset that will display without check
@@ -626,20 +641,23 @@ function displayDetails()
     local lastLineNumber=$1
     local displayLines=$2
 
-    datetime=`date +"%Y-%m-%d %H:%M:%S"`
+    endFileTime=`date +%s`
+    endFileDatetime=`date +"%Y-%m-%d %H:%M:%S"`
+    diffTime=$((endFileTime - startFileTime))
+    diffConvertTime=$(convertSeconds $diffTime)
 
-    echoMsg "\033[4;36m# Last Line: $lastLineNumber - Display Total Lines: $displayLines - $datetime - $file\033[0m\n" $FLAG_NOT_FOLLOW
+    echoMsg "\033[4;36m# Last Line: $lastLineNumber - Display Total Lines: $displayLines - $startFileDatetime - $endFileDatetime = $diffConvertTime - $file\033[0m\n" $FLAG_NOT_FOLLOW
 
     if [ $followFlag = 1 ]; then
         # If follow new lines, display to terminal to know which file is the line belong to
         if [ -z "${followData["$file,displayLines"]}" ] || [[ -n "${followData["$file,displayLines"]}" && $displayLines -gt ${followData["$file,displayLines"]} ]]; then
-            echo -e "\033[4;36m# Last Line: $lastLineNumber - Display Total Lines: $displayLines - $datetime - $file\033[0m\n"
+            echo -e "\033[4;36m# Last Line: $lastLineNumber - Display Total Lines: $displayLines - $startFileDatetime - $endFileDatetime = $diffConvertTime - $file\033[0m\n"
         fi
     else
-        persistDetailsToSaveFile "$file" "$saveFile" $lastLineNumber $displayLines "$datetime"
+        persistDetailsToSaveFile "$file" "$saveFile" $lastLineNumber $displayLines "$endFileDatetime" "$startFileDatetime" "$diffConvertTime"
     fi
 
-    setFollowData "$file" $lastLineNumber $displayLines "$datetime" "$saveFile"
+    setFollowData "$file" "$saveFile" $lastLineNumber $displayLines "$endFileDatetime" "$startFileDatetime"
 }
 
 # Persist details to the end of the save file
@@ -649,10 +667,12 @@ function persistDetailsToSaveFile()
     local saveFile=$2
     local lastLineNumber=$3
     local displayLines=$4
-    local datetime=$5
+    local endFileDatetime=$5
+    local startFileDatetime=$6
+    local diffConvertTime=$7
 
     if [[ -n "$saveFile" && -e $saveFile ]]; then 
-        echo "# Last Line: $lastLineNumber - Display Total Lines: $displayLines - $datetime - $file" >> "$saveFile";
+        echo "# Last Line: $lastLineNumber - Display Total Lines: $displayLines - $startFileDatetime - $endFileDatetime = $diffConvertTime - $file" >> "$saveFile";
     fi
 
     # If no display line, then hide the save file
@@ -751,6 +771,9 @@ function getLastDisplayTotalLines()
 # The line must match $matchReg user set and after the $startDatetime
 function displayFile()
 {
+    startFileTime=`date +%s`
+    startFileDatetime=`date +"%Y-%m-%d %H:%M:%S"`
+
     isAllowedFileCheckers
     local isNotAllowedFileFlag=`echo $?`
     if [ ! $isNotAllowedFileFlag -eq 0 ]; then
@@ -770,10 +793,10 @@ function displayFile()
 
     local lastLineNumber=$(getLastLineNumber "$file" "$saveFile")
 
-    local currentLineNumber=0
     local isNotAllowedLineFlag=1
     local noCheckLineOffset=0
     local noCheckLineNumber=0
+    currentLineNumber=0
     displayTotalLines=$(getLastDisplayTotalLines "$file" "$saveFile")
     while IFS=$'\n' read -r line
     do
@@ -846,7 +869,7 @@ function reset()
 # Format:
 #  followData["$file,lastLineNumber"]=$lastLineNumber
 #  followData["$file,displayLines"]=$displayLines
-#  followData["$file,datetime"]=$datetime
+#  followData["$file,endFiledatetime"]=$datetime
 declare -A followData
 # For easilly to know how many log files we have followed
 # Format:
@@ -855,10 +878,12 @@ declare -A followFiles
 function setFollowData()
 {
     if [ $followFlag = 1 ]; then
-        followData["$1,lastLineNumber"]=$2
-        followData["$1,displayLines"]=$3
-        followData["$1,datetime"]=$4
-        followFiles["$1"]=$5
+        followFiles["${1}"]=$2
+
+        followData["${1},lastLineNumber"]=$3
+        followData["${1},displayLines"]=$4
+        followData["${1},endFiledatetime"]=$5
+        if [[ -z "${followData["${1},startFileDatetime"]}" ]]; then followData["${1},startFileDatetime"]=$6; fi
     fi
 }
 
@@ -870,7 +895,9 @@ function persistFollowData()
     local saveFile=""
     local lastLineNumber=0
     local displayLines=0
-    local datetime=""
+    local endFiledatetime=""
+    local startFileDatetime=""
+    local diffConvertTime=""
 
     for file in "${!followFiles[@]}"
     do
@@ -879,10 +906,11 @@ function persistFollowData()
         lastLineNumber=${followData["$file,lastLineNumber"]}
         if [[ -n "$lastLineNumber" ]]; then
             displayLines=${followData["$file,displayLines"]}
-            datetime=${followData["$file,datetime"]}
-            # echo -e "\033[4;36m# Last Line: $lastLineNumber - Display Total Lines: $displayLines - $datetime - $file\033[0m"
+            endFiledatetime=${followData["$file,endFiledatetime"]}
+            startFileDatetime=${followData["$file,startFileDatetime"]}
+            diffConvertTime=$(convertSecondsFromDate "$startFileDatetime" "$endFiledatetime")
 
-            persistDetailsToSaveFile "$file" "$saveFile" $lastLineNumber $displayLines "$datetime"
+            persistDetailsToSaveFile "$file" "$saveFile" $lastLineNumber $displayLines "$endFiledatetime" "$startFileDatetime" "$diffConvertTime"
         fi
     done
 }
@@ -932,7 +960,17 @@ function trapPersistFollowData()
     echo -e "\nExiting..."
     echo -e "\033[93mPersisting the log file details into save files before exit\033[0m"
     echo -e "\033[93mPlease don't exit again, will exit it after persisting\033[0m"
+    # displayDetails $currentLineNumber $displayTotalLines
     persistFollowData
+    echo -e "Exited!"
+    exit
+}
+function trapPersistSaveData()
+{
+    echo -e "\nExiting..."
+    echo -e "\033[93mPersisting the log file details into save files before exit\033[0m"
+    echo -e "\033[93mPlease don't exit again, will exit it after persisting\033[0m"
+    displayDetails $currentLineNumber $displayTotalLines
     echo -e "Exited!"
     exit
 }
@@ -1053,6 +1091,8 @@ lineDateCompleteDefiners
 
 pathWithoutEndSlash=${path%/}
 
+runTime=`date +%s`
+
 findCommand="find $path -name $name $findOpts"
 
 echo -e "\033[1;32mStart searching logs...\033[0m"
@@ -1072,6 +1112,8 @@ echo -e "> Search the lines of log files that match \033[1;32m$matchReg\033[0m"
 
 if [ $followFlag = 1 ]; then
     trap trapPersistFollowData SIGINT SIGTERM;
+else
+    trap trapPersistSaveData SIGINT SIGTERM;
 fi
 
 displayFiles
