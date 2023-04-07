@@ -263,6 +263,12 @@ if [ $os = "mac" ]; then
         # file or line
         local type=$2
 
+        if [ "$type" = "file" ]; then
+            if [[ -n "${fileDateCompleteHandlers["$dateFormat"]}" ]]; then echo "Manually define file date complete function for $dateFormat"; return 0; fi
+        else
+            if [[ -n "${lineDateCompleteHandlers["$dateFormat"]}" ]]; then echo "Manually define line date complete function for $dateFormat"; return 0; fi
+        fi
+
         dateFormatBase64=$(echo "$dateFormat" | base64)
         # funcSuffix=${dateFormatBase64%%\=*}
         funcSuffix=${dateFormatBase64//\=/_}
@@ -844,9 +850,9 @@ function removeSavePath()
     fi
     if [[ -e $savePath ]]; then
         rm -rf $savePath
-        echo -e "\033[1;32mDeleted!\033[0m"
+        echo -e "\033[1;32mDeleted: $savePath\033[0m"
     else
-        echo -e "\033[1;31mPath not existed!\033[0m"
+        echo -e "\033[1;31mSave path not existed: $savePath\033[0m"
     fi
 }
 
@@ -957,8 +963,7 @@ function follow()
 # If --follow, we must not exit immediately the shell and must add the log file details into save files before exited
 function trapPersistFollowData()
 {
-    echo -e "\nExiting..."
-    echo -e "\033[93mPersisting the log file details into save files before exit\033[0m"
+    echo -e "\033[93m\nPersisting the log file details into save files before exit\033[0m"
     echo -e "\033[93mPlease don't exit again, will exit it after persisting\033[0m"
     # displayDetails $currentLineNumber $displayTotalLines
     persistFollowData
@@ -967,8 +972,7 @@ function trapPersistFollowData()
 }
 function trapPersistSaveData()
 {
-    echo -e "\nExiting..."
-    echo -e "\033[93mPersisting the log file details into save files before exit\033[0m"
+    echo -e "\033[93m\nPersisting the log file details into save files before exit\033[0m"
     echo -e "\033[93mPlease don't exit again, will exit it after persisting\033[0m"
     displayDetails $currentLineNumber $displayTotalLines
     echo -e "Exited!"
@@ -1041,7 +1045,8 @@ followFlag=0
 followInterval=3
 
 # Sopport custom config
-if [ -e ./config.sh ]; then echo 123; source ./config.sh; fi
+configFile="./config.sh"
+if [ -e $configFile ]; then echo "Loading config file $configFile"; source $configFile; fi
 
 # Export functions for other shell calling
 isExport=0

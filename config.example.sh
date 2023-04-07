@@ -47,6 +47,7 @@ lineOffsetRegsLength=${#lineOffsetRegs[@]}
 fileDatetimeRegs=(
     "^.*/.*([0-9]{4}-[0-9]{2}-[0-9]{2})" "%Y-%m-%d"
     "^.*/.*([0-9]{8})" "%Y%m%d"
+    # "^.*/.*([0-9]{6})" "%d%m%Y"
 )
 fileDatetimeRegsLength=${#fileDatetimeRegs[@]}
 # Set By Option: --line-time-reg
@@ -57,6 +58,7 @@ fileDatetimeRegsLength=${#fileDatetimeRegs[@]}
 #   format1/format2: Line datetime format, use it to convert matched datetime string to timestamp
 lineDatetimeRegs=(
     "([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2})" "%Y-%m-%d %H:%M:%S"
+    # "([0-9]{11})" "%d%m%Y%H%M%S"
 )
 lineDatetimeRegsLength=${#lineDatetimeRegs[@]}
 # Set By Option: -f, --follow 
@@ -65,3 +67,33 @@ followFlag=0
 # No option
 # Follow interval, default to 3 seconds
 followInterval=3
+
+# 定义你的文件日期补全函数
+myFileDateComplete()
+{
+    # 日期及其格式初始值是
+    # fileDatetimeFormat="%d%m%Y"
+    # fileDatetime="142023"
+
+    # 你要做的就是把它们转换成 2023-04-01 23:59:59
+    fileDatetimeFormat="%Y-%m-%d %H:%M:%S"
+    fileDatetime="2023-04-01 23:59:59"
+}
+# 最后将函数赋值给 lineDateCompleteHandlers["%d%m%Y%H%M%S"]
+# 取消注释下面一行
+# fileDateCompleteHandlers["%d%m%Y"]=myFileDateComplete
+
+# 定义你的行日期补全函数
+myLineDateComplete()
+{   
+    # 日期及其格式初始值是
+    # lineDatetimeFormat="%d%m%Y%H%M%S"
+    # lineDatetime="14202312159"
+
+    # 你要做的就是把它们转换成 2023-04-01 12:01:59
+    lineDatetimeFormat="%Y-%m-%d %H:%M:%S"
+    lineDatetime="2023-04-01 12:01:59"
+}
+# 最后将函数赋值给 lineDateCompleteHandlers["%d%m%Y%H%M%S"]
+# 取消注释下面一行
+# lineDateCompleteHandlers["%d%m%Y%H%M%S"]=myLineDateComplete

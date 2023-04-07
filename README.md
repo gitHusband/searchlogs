@@ -138,8 +138,13 @@ $ ./searchlogs.sh --path /data/path --save-log --reset
 $ ./searchlogs.sh --line-offset-reg "Undefined array key,3"
 ```
 
+又如，不偏移打印，即所有行均需匹配 --match-reg 才能打印
+```bash
+$ ./searchlogs.sh --line-offset-reg ""
+```
+
 ### --file-time-reg 文件时间匹配规则
-匹配文件名的日期，用于与 --start-datetime 比较
+匹配文件名的日期，并将其转换为时间戳，用于与 --start-datetime 比较
 若日期小于 --start-datetime，则忽略此文件
 
 **格式**: `reg1,format1,reg2,format2` 以逗号分隔
@@ -159,8 +164,12 @@ $ ./searchlogs.sh --file-time-reg "([0-9]{4}_[0-9]{2}_[0-9]{2}),%Y_%m_%d"
 $ ./searchlogs.sh --file-time-reg ""
 ```
 
+如果你的日期格式够特殊，导致默认的日期补全函数无法转换日期为时间戳，怎么办呢？
+假如你的格式是 "%d%m%Y"，正常的日期例如（01042023），但你的是 （142023）
+这就需要你自己定义日期补全函数，请参考以下《定义文件日期补全函数》
+
 ### --line-time-reg 行时间匹配规则
-匹配行的日期，用于与 --start-datetime 比较
+匹配行的日期，并将其转换为时间戳，用于与 --start-datetime 比较
 若日期小于 --start-datetime，则忽略此行
 
 **格式**: `reg1,format1,reg2,format2` 以逗号分隔
@@ -179,6 +188,10 @@ $ ./searchlogs.sh --line-time-reg "([0-9]{4}_[0-9]{2}_[0-9]{2} [0-9]{2}:[0-9]{2}
 $ ./searchlogs.sh --line-time-reg ""
 ```
 
+如果你的日期格式够特殊，导致默认的日期补全函数无法转换日期为时间戳，怎么办呢？
+假如你的格式是 "%d%m%Y%H%M%S"，正常的日期例如（01042023120101），但你的是 （14202312159）
+这就需要你自己定义日期补全函数，请参考以下《定义行日期补全函数》
+
 ### -f, --follow 监听模式
 后台监听文件增长，包括新增文件
 
@@ -196,7 +209,8 @@ $ ./searchlogs.sh --path /data/path --save-log -f
 由于可变因素太多，如果不想繁琐地设置选项，可一次性设置所有适合您自己的配置
 
 在相同目录下，创建 `config.sh` 文件
-例如，
+
+### 基础配置
 ```bash
 #!/usr/bin/env bash
 # Replace !/bin/bash, because Mac `brew install bash`, the bash is /usr/local/bin/bash, not /bin/bash
@@ -229,4 +243,44 @@ matchReg="^ERROR|WARNING|CRITICAL"
 fileDatetimeRegs=(
     "([0-9]{4}_[0-9]{2}_[0-9]{2})" "%Y_%m_%d"
 )
+```
+
+### 定义文件日期补全函数
+如果你的文件日期格式够特殊，导致默认的日期补全函数无法转换日期为时间戳，怎么办呢？
+假如你的格式是 "%d%m%Y"，正常的日期例如（01042023），但你的是 （142023）
+这就需要你自己定义日期补全函数
+```shell
+# 定义你的文件日期补全函数
+myFileDateComplete()
+{
+    # 日期及其格式初始值是
+    # fileDatetimeFormat="%d%m%Y"
+    # fileDatetime="142023"
+
+    # 你要做的就是把它们转换成 2023-04-01 23:59:59
+    fileDatetimeFormat="%Y-%m-%d %H:%M:%S"
+    fileDatetime="2023-04-01 23:59:59"
+}
+# 最后将函数赋值给 lineDateCompleteHandlers["%d%m%Y%H%M%S"]
+fileDateCompleteHandlers["%d%m%Y"]=myFileDateComplete
+```
+
+### 定义行日期补全函数
+如果你的行日期格式够特殊，导致默认的日期补全函数无法转换日期为时间戳，怎么办呢？
+假如你的格式是 "%d%m%Y%H%M%S"，正常的日期例如（01042023120101），但你的是 （14202312159）
+这就需要你自己定义日期补全函数
+```shell
+# 定义你的行日期补全函数
+myLineDateComplete()
+{   
+    # 日期及其格式初始值是
+    # lineDatetimeFormat="%d%m%Y%H%M%S"
+    # lineDatetime="14202312159"
+
+    # 你要做的就是把它们转换成 2023-04-01 12:01:59
+    lineDatetimeFormat="%Y-%m-%d %H:%M:%S"
+    lineDatetime="2023-04-01 12:01:59"
+}
+# 最后将函数赋值给 lineDateCompleteHandlers["%d%m%Y%H%M%S"]
+lineDateCompleteHandlers["%d%m%Y%H%M%S"]=myLineDateComplete
 ```
